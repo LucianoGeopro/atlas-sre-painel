@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas SRE por Município – GOINFRA</title>
+<meta name="description" content="Sistema Rodoviário Estadual – SRE por município: situação da malha, indicadores, obras e projetos dos 246 municípios de Goiás, atualizado mensalmente.">
+<link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=1">
+<meta name="theme-color" content="#00923f">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="GOINFRA">
+<meta property="og:title" content="Atlas SRE por Município – GOINFRA">
+<meta property="og:description" content="Situação da malha rodoviária estadual, indicadores, obras e projetos de cada um dos 246 municípios de Goiás.">
+<meta property="og:url" content="https://lucianogeopro.github.io/atlas-sre-painel/">
+<meta property="og:image" content="https://lucianogeopro.github.io/atlas-sre-painel/img/capa.jpg">
+<meta property="og:image:width" content="1902">
+<meta property="og:image:height" content="1345">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="inicio.css?v=1">
+<script>try { if (/tema=escuro/.test(location.search) || localStorage.getItem("atlas-tema") === "escuro") document.documentElement.dataset.tema = "escuro"; } catch (e) {}</script>
+</head>
+<body>
+<!-- página inicial (18/11/2026), no modelo do painel do SIPLAWEB: números de Goiás, cartões por lote e atalhos -->
+<header class="topo">
+  <img src="img/logo.svg" alt="DPL · GOINFRA · SEINFRA · Governo de Goiás">
+  <div class="marca">Atlas SRE por Município<small>Sistema Rodoviário Estadual</small></div>
+  <div class="espaco"></div>
+  <div class="busca-ini">
+    <input id="q" type="search" placeholder="🔍 Buscar município…" autocomplete="off" aria-label="Buscar município">
+    <ul id="sug" class="sug" role="listbox" hidden></ul>
+  </div>
+  <button id="tema" class="tema" type="button" title="Alternar tema claro/escuro">🌙</button>
+</header>
+
+<section class="hero">
+  <span class="hero-svg" id="heroSvg"></span>
+  <div class="hero-conteudo">
+    <h1>Atlas do SRE por Município</h1>
+    <p>Situação da malha rodoviária estadual, indicadores, obras e projetos dos municípios goianos em um só lugar.</p>
+    <div class="numeros">
+      <div><b id="nMun">—</b><span>municípios</span></div>
+      <div><b id="nKm">—</b><span>de rodovias estaduais</span></div>
+      <div><b id="nIdx">—</b><span>índice de pavimentação</span></div>
+      <div><b id="nObra">—</b><span>obras</span></div>
+      <div><b id="nProj">—</b><span>projetos</span></div>
+      <div><b id="nMes">—</b><span>base do SRE</span></div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <nav class="atalhos" aria-label="Atalhos">
+    <a class="atalho at-mapa" href="mapa.html"><span class="at-svg" id="atSvgMapa"></span><div><b>Mapa por município</b><span>Mapa, indicadores, gráficos e quadros de cada município</span></div></a>
+    <a class="atalho at-comb" href="mapa.html?combinar=1"><span class="at-svg" id="atSvg"></span><div><b>Combinar municípios</b><span>Some vários municípios e compare lado a lado</span></div></a>
+    <a class="atalho at-sobre" href="mapa.html?sobre=1"><div><b>Sobre os dados</b><span>Fontes, cálculo dos indicadores e cuidados na leitura</span></div></a>
+  </nav>
+
+  <h2>Lotes de manutenção</h2>
+  <div class="legenda-sit" id="legSit"></div>
+  <nav class="grade" id="grade" aria-label="Lotes de manutenção"><p class="aguarde">Carregando…</p></nav>
+  <p class="nota">Clique num lote para abrir os seus municípios juntos no mapa. Extensões do SRE de <span class="mes-txt">…</span>:
+    rodovias estaduais principais, sem planejadas. A soma exata dos lotes é o total de Goiás; somar os valores
+    mostrados, com 2 casas, pode dar 0,01 Km de diferença.</p>
+</main>
+<div class="rodape">GOINFRA · Diretoria de Planejamento – DPL · Gerência da Rede Física – GEREF · (62) 3265-4149 · redefisica.goinfra@goias.gov.br</div>
+
+<script src="inicio.js?v=1"></script>
+</body>
+</html>
