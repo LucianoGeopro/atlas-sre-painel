@@ -149,7 +149,7 @@ const estiloMascara = () => escuro() ? "rgba(22,24,26,0.8)" : "rgba(238,238,234,
 function aplicaTema(esc_) {
   if (esc_) document.documentElement.dataset.tema = "escuro"; else delete document.documentElement.dataset.tema;
   $("#tema").textContent = esc_ ? "☀ Tema claro" : "🌙 Tema escuro";
-  try { localStorage.setItem("atlas-tema", esc_ ? "escuro" : "claro"); } catch (e) {}
+  try { sessionStorage.setItem("painel-tema", esc_ ? "escuro" : "claro"); } catch (e) {}   // PAINEL: abre sempre no claro
   if (camadas.mascara) camadas.mascara.redesenha();
 }
 $("#tema").onclick = () => aplicaTema(!escuro());
