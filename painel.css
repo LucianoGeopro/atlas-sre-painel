@@ -1,0 +1,153 @@
+/* ATLAS_PAINEL — arranjo de painéis no modelo do SIPLAWEB (18/11/2026). Vem depois do style.css (o mesmo do site atual).
+   Só vale com html.modo-painel; no modo apresentação o painel.js devolve os blocos e a folha A3 usa o style.css original. */
+:root {
+  --p-fundo: #f2f4f3; --p-sup: #fff; --p-borda: #e0e6e2; --p-tit: #1d2b24; --p-verde: #00923f; --p-topo: #00923f;
+  --p-btn: #e9f6ee; --p-btn-borda: #bfe2cc; --p-btn-txt: #13703a; --p-sombra: 0 1px 3px rgba(16, 40, 28, .06);
+}
+:root[data-tema=escuro] {
+  --p-fundo: #121416; --p-sup: #1c1f21; --p-borda: #363a3d; --p-tit: #e4e4df; --p-topo: #0a6b34;
+  --p-btn: #1f2d27; --p-btn-borda: #2f4a3c; --p-btn-txt: #6cc59a; --p-sombra: none;
+}
+html:not(.modo-painel) .topo-painel, html:not(.modo-painel) .painel-app { display: none !important; }
+html.modo-painel #folha { display: none; }
+
+html.modo-painel, html.modo-painel body { height: 100%; background: var(--p-fundo); }
+html.modo-painel body { display: flex; flex-direction: column; overflow: hidden;
+  font-family: "Segoe UI", Inter, system-ui, Arial, sans-serif; }
+
+/* barra do topo (verde, como a do mapa do SIPLAWEB) */
+.topo-painel { flex: none; display: flex; align-items: center; gap: 18px; height: 60px; padding: 0 20px;
+  background: var(--p-topo); color: #fff; }
+.tp-marca { display: flex; align-items: baseline; gap: 10px; color: #fff; text-decoration: none; white-space: nowrap; }
+.tp-marca b { font-size: 19px; font-weight: 800; letter-spacing: .02em; }
+.tp-marca span { font-size: 19px; font-weight: 600; color: #c8efd6; }
+.tp-mes { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #dff5e7;
+  border-left: 1px solid rgba(255,255,255,.35); padding-left: 16px; white-space: nowrap; }
+.tp-espaco { flex: 1; }
+.tp-sis { font-size: 12.5px; font-weight: 700; letter-spacing: .1em; white-space: nowrap; }
+.tp-btns { display: flex; gap: 8px; align-items: center; }
+.tp-btns .tp-btn, html.modo-painel .tp-btns .tema-btn {
+  display: inline-flex; align-items: center; justify-content: center; height: 34px; min-width: 34px; margin: 0;
+  padding: 0 11px; border: 1.5px solid rgba(255,255,255,.85); border-radius: 8px; background: transparent; color: #fff;
+  font: 600 12.5px "Segoe UI", Inter, system-ui, Arial, sans-serif; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.tp-btns .tp-btn { font-size: 18px; padding: 0; }
+.tp-btns .tp-btn:hover, html.modo-painel .tp-btns .tema-btn:hover { background: rgba(255,255,255,.16); }
+
+/* três colunas: painel esquerdo · mapa · painel direito */
+.painel-app { flex: 1 1 auto; min-height: 0; display: grid; padding: 12px 0 12px 12px;
+  grid-template-columns: 290px 20px minmax(0, 1fr) 20px minmax(560px, 44vw); transition: grid-template-columns .25s; }
+html.esq-fechado .painel-app { grid-template-columns: 0 20px minmax(0, 1fr) 20px minmax(560px, 44vw); }
+html.dir-fechado .painel-app { grid-template-columns: 290px 20px minmax(0, 1fr) 20px 0; }
+html.esq-fechado.dir-fechado .painel-app { grid-template-columns: 0 20px minmax(0, 1fr) 20px 0; }
+html.esq-fechado .lado-esq, html.dir-fechado .lado-dir { visibility: hidden; border: 0; }
+.lado { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--p-sup); border: 1px solid var(--p-borda); border-radius: 12px; box-shadow: var(--p-sombra); }
+.lado-dir { margin-right: 12px; }
+.lado-corpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 18px 12px; }
+.lado-rec { align-self: start; margin-top: 18px; width: 20px; height: 28px; padding: 0; border: 0; background: none;
+  color: #6b7a72; font-size: 13px; cursor: pointer; }
+.lado-rec:hover { color: var(--p-verde); }
+.lado-pe { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 14px 14px;
+  border-top: 1px solid var(--p-borda); font-size: 11px; color: #6b7a72; letter-spacing: .04em; }
+.lado-pe img { width: 100%; max-width: 250px; height: auto; display: block; }
+[data-tema=escuro] .lado-pe img { background: #fff; border-radius: 6px; padding: 4px 6px; }
+
+/* seções recolhíveis (título em caixa alta com "+" / "−", como no SIPLAWEB) */
+.sp { border-bottom: 1px solid var(--p-borda); }
+.sp:last-of-type { border-bottom: 0; }
+.sp-tit { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 15px 2px 13px;
+  border: 0; background: none; color: var(--p-tit); cursor: pointer; text-align: left;
+  font: 700 12.5px "Segoe UI", Inter, system-ui, Arial, sans-serif; letter-spacing: .12em; }
+.sp-tit i { flex: none; width: 22px; height: 22px; border: 1px solid #cfd8d3; border-radius: 50%; position: relative; }
+.sp-tit i::before, .sp-tit i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 2px;
+  background: var(--p-tit); transform: translate(-50%, -50%); border-radius: 1px; }
+.sp.fechada .sp-tit i::after { transform: translate(-50%, -50%) rotate(90deg); }
+.sp-tit:hover i { border-color: var(--p-verde); }
+.sp-corpo { padding: 0 0 14px; min-width: 0; container-type: inline-size; }
+.sp.fechada .sp-corpo { display: none; }
+.sp:has(> .sp-corpo > #comp[hidden]) { display: none; }   /* comparação só com vários municípios */
+
+/* MUNICÍPIO: busca e botões em coluna */
+html.modo-painel .lado .busca { position: static; display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 8px;
+  align-items: center; padding: 0; background: none; border: 0; box-shadow: none; }
+html.modo-painel .lado .busca > #pag, html.modo-painel .lado .busca > button:not(#ant):not(#prox),
+html.modo-painel .lado .busca > select, html.modo-painel .lado .busca > .selecao { grid-column: 1 / -1; }
+html.modo-painel .lado .busca .busca-campo { flex: none; }
+html.modo-painel .lado .busca input { font-size: 14px; padding: 8px 10px; }
+html.modo-painel .lado .busca #pag { text-align: center; margin-top: -2px; }
+html.modo-painel .lado .busca #ver-capa { display: none; }
+html.modo-painel .lado .busca .comb-btn, html.modo-painel .lado .busca .link-btn {
+  width: 100%; height: 40px; margin: 0; padding: 0 10px; background: var(--p-btn); border: 1px solid var(--p-btn-borda);
+  border-radius: 8px; color: var(--p-btn-txt); font: 600 13.5px "Segoe UI", Inter, system-ui, Arial, sans-serif; }
+html.modo-painel .lado .busca .comb-btn:hover, html.modo-painel .lado .busca .link-btn:hover { filter: brightness(.97); }
+html.modo-painel .lado .busca .comb-btn.ativo { background: var(--brand); border-color: var(--brand); color: #fff; }
+html.modo-painel .lado .busca .link-btn.ok { background: var(--p-verde); border-color: var(--p-verde); color: #fff; }
+html.modo-painel .lado .busca .mes-sel { width: 100%; margin: 0; }
+html.modo-painel .lado .selecao { padding: 2px 0 0; border-top: 0; }
+[data-tema=escuro].modo-painel .lado .busca .comb-btn.ativo { color: #111; }
+
+/* CAMADAS e LEGENDA no painel estreito */
+html.modo-painel .lado .camadas { border: 0; background: none; padding: 0; font-size: 12.5px; }
+html.modo-painel .lado .camadas-grp { gap: 4px 12px; }
+html.modo-painel .lado .camadas-tit { min-width: 100%; margin-bottom: 1px; }
+html.modo-painel .lado .b-legenda { margin: 0; }
+html.modo-painel .lado .b-legenda > .sec { display: none; }
+html.modo-painel .lado .legenda { grid-template-columns: 1fr; font-size: 11.5px; }
+
+/* mapa no centro, ocupando a altura toda */
+#centro { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+html.modo-painel .b-mapa { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin: 0; padding: 10px 12px 12px;
+  background: var(--p-sup); border: 1px solid var(--p-borda); border-radius: 12px; box-shadow: var(--p-sombra); }
+html.modo-painel .b-mapa > .sec { flex: none; margin: 0 0 8px; border-bottom: 0; padding: 0; font: 700 12.5px "Segoe UI", Inter, system-ui, Arial, sans-serif;
+  letter-spacing: .1em; color: var(--p-tit); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.modo-painel .b-mapa > .mapa:not(.mapa-cheio) { flex: 1 1 auto; height: auto; min-height: 0; border-radius: 8px; }
+
+/* painel direito: nome do município fixo no alto */
+.dir-cab { position: sticky; top: -6px; z-index: 5; margin: -6px -18px 0; padding: 10px 18px 8px; background: var(--p-sup);
+  border-bottom: 1px solid var(--p-borda); }
+html.modo-painel .dir-cab .cab { display: block; padding: 0; background: none; color: var(--p-tit); }
+html.modo-painel .dir-cab .cab-ante { font-size: 11px; font-weight: 700; letter-spacing: .1em; color: #6b7a72; }
+html.modo-painel .dir-cab .cab-ante br { display: none; }
+html.modo-painel .dir-cab .cab-ante .mes-up { margin-left: 6px; }
+html.modo-painel .dir-cab .cab-titulo { text-align: left; font-size: 24px; color: var(--brand); margin-top: 2px; }
+html.modo-painel .dir-cab .cab-logo { display: none; }
+html.modo-painel .lado-dir .blk { margin: 0; }
+html.modo-painel .lado-dir .b-ind > .sec, html.modo-painel .lado-dir .b-notas > .sec,
+html.modo-painel .lado-dir #comp > .sec, html.modo-painel .lado-dir .obras-quadro > .sec { display: none; }
+html.modo-painel .lado-dir .b-sre > .sec { margin-top: 0; }
+html.modo-painel .lado-dir .graficos { margin: 0; }
+.dir-rodape { padding: 14px 0 4px; }
+html.modo-painel .dir-rodape .rodape { padding: 0; background: none; text-align: left; font-size: 10.5px; line-height: 1.6; }
+
+/* blocos se ajustam à largura do painel (não da tela) */
+@container (max-width: 760px) {
+  .cartoes { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .graficos { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .obras { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@container (max-width: 520px) {
+  .cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .graficos { grid-template-columns: minmax(0, 1fr) !important; }
+  .peso { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* tela estreita (celular / janela pequena): uma coluna, a página rola */
+@media (max-width: 1100px) {
+  html.modo-painel body { height: auto; overflow: auto; }
+  html.modo-painel, html.modo-painel body { height: auto; }
+  .painel-app, html.esq-fechado .painel-app, html.dir-fechado .painel-app, html.esq-fechado.dir-fechado .painel-app {
+    display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+  .lado-rec { display: none; }
+  html.esq-fechado .lado-esq, html.dir-fechado .lado-dir { visibility: visible; border: 1px solid var(--p-borda); }
+  .lado-dir { margin-right: 0; }
+  .lado-corpo { overflow: visible; }
+  #centro { height: 70vh; min-height: 380px; }
+  .dir-cab { position: static; }
+  .tp-sis { display: none; }
+}
+@media (max-width: 600px) {
+  .topo-painel { height: auto; flex-wrap: wrap; gap: 6px 12px; padding: 10px 16px; }
+  .tp-marca b, .tp-marca span { font-size: 16px; }
+  .tp-mes { border-left: 0; padding-left: 0; }
+  .painel-app { padding: 12px 16px; }
+}
