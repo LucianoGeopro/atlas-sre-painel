@@ -32,7 +32,6 @@ html.modo-painel body { display: flex; flex-direction: column; overflow: hidden;
   font: 600 12.5px "Segoe UI", Inter, system-ui, Arial, sans-serif; text-decoration: none; cursor: pointer; white-space: nowrap; }
 .tp-btns .tp-btn { font-size: 18px; padding: 0; }
 .tp-btns .tp-btn:hover, html.modo-painel .tp-btns .tema-btn:hover { background: rgba(255,255,255,.16); }
-
 /* três colunas: painel esquerdo · mapa · painel direito */
 .painel-app { flex: 1 1 auto; min-height: 0; display: grid; padding: 12px 0 12px 12px;
   grid-template-columns: 290px 20px minmax(0, 1fr) 20px minmax(560px, 44vw); transition: grid-template-columns .25s; }
