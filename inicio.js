@@ -16,7 +16,7 @@ const escuro = () => document.documentElement.dataset.tema === "escuro";
 function aplicaTema(e) {
   if (e) document.documentElement.dataset.tema = "escuro"; else delete document.documentElement.dataset.tema;
   $("#tema").textContent = e ? "☀" : "🌙"; $("#tema").title = e ? "Tema claro" : "Tema escuro";
-  try { localStorage.setItem("atlas-tema", e ? "escuro" : "claro"); } catch (x) {}
+  try { sessionStorage.setItem("painel-tema", e ? "escuro" : "claro"); } catch (x) {}   // abre sempre no claro
 }
 $("#tema").onclick = () => aplicaTema(!escuro());
 aplicaTema(escuro());
