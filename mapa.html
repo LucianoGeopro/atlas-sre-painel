@@ -21,7 +21,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <!-- Leaflet 1.9.4 guardado no próprio site (18/11/2026): não depende do unpkg -->
 <link rel="stylesheet" href="lib/leaflet/leaflet.css">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 <link rel="stylesheet" href="painel.css?v=2">
 <!-- tema (18/11/2026): o site sempre abre no tema claro; o escuro vale só enquanto a aba estiver aberta (sessionStorage) -->
 <script>try { if (/tema=escuro/.test(location.search) || sessionStorage.getItem("painel-tema") === "escuro") document.documentElement.dataset.tema = "escuro"; } catch (e) { if (/tema=escuro/.test(location.search)) document.documentElement.dataset.tema = "escuro"; }
@@ -264,6 +264,7 @@ document.documentElement.classList.add("modo-painel");</script>
     <button id="apres-zmenos" type="button" title="Afastar (−  ou  Ctrl + roda do mouse)" aria-label="Afastar">−</button>
     <button id="apres-zajusta" type="button" title="Ajustar à tela (0)"><span id="apres-zval">100%</span> · Ajustar</button>
     <button id="apres-zmais" type="button" title="Aproximar (+  ou  Ctrl + roda do mouse); com zoom, arraste para mover" aria-label="Aproximar">+</button>
+    <button id="apres-impr" type="button" title="Imprimir ou salvar em PDF (folha A3 deitada)">🖨 Imprimir</button>
   </div>
 </div>
 
@@ -271,7 +272,7 @@ document.documentElement.classList.add("modo-painel");</script>
 <div id="carregando" class="carregando">Carregando o atlas…</div>
 
 <script src="lib/leaflet/leaflet.js"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 <script src="painel.js?v=2"></script>
 </body>
 </html>
