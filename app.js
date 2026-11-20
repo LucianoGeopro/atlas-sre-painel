@@ -1459,12 +1459,33 @@ function grafPeso(cods, m) {
       (lts.length > 1 ? `<br><span style="color:${T_LT}">Vizinhos: ${esc(lts.slice(1).join(", "))}</span>` : "")
     : `<span style="color:${T_MU}">${esc(nm0)}</span><br><span style="color:${T_LT}">${esc(rl)}</span>`;
   $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa">${miniMapa(cods, lts, LS)}
-        <div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div></div><div>${s}</div></div>`;
+        <div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div>
+        <button type="button" class="amplia-mini" title="Ver o mapa dos lotes em tamanho maior">⤢ Ampliar mapa</button></div><div>${s}</div></div>`;
+  $("#g-peso .amplia-mini").onclick = () => ampliaMini($("#g-peso .peso-mapa svg").outerHTML, $("#g-peso .peso-rot").innerHTML);
   $("#g-peso").querySelectorAll(".seg-un button").forEach(b => b.onclick = () => {
     MODO_PESO = b.dataset.un; try { localStorage.setItem("atlas-peso-un", MODO_PESO); } catch (e) {}
     grafPeso(cods, m);
     if (APRES && !IMG) ajustaFolha();
   });
+}
+
+// 20/11/2026: "⤢ Ampliar mapa" do comparativo — o mesmo mini mapa grande numa janela por cima (✕, Esc ou clique fora fecha)
+function ampliaMini(svg, rot) {
+  let o = $("#mini-zoom");
+  if (!o) {
+    o = document.createElement("div"); o.id = "mini-zoom"; o.hidden = true;
+    o.innerHTML = `<div class="mz-caixa" role="dialog" aria-modal="true" aria-label="Mapa dos lotes ampliado">
+      <button type="button" class="mz-fecha" aria-label="Fechar">✕</button><div class="mz-corpo"></div></div>`;
+    document.body.appendChild(o);
+    const fecha = () => { o.hidden = true; dica.style.display = "none"; };
+    o.addEventListener("click", e => { if (e.target === o || e.target.closest(".mz-fecha")) fecha(); });
+    window.addEventListener("keydown", e => { if (e.key === "Escape" && !o.hidden) { fecha(); e.stopImmediatePropagation(); } }, true);
+  }
+  o.querySelector(".mz-corpo").innerHTML = `<div class="mz-mapa">${svg}</div><div class="peso-rot mz-rot">${rot}</div>`;
+  // o desenho cresce ~3x: letras e contornos voltam a um tamanho de leitura normal
+  o.querySelectorAll(".mz-mapa text").forEach(t => { t.setAttribute("font-size", +t.getAttribute("font-size") * .5); t.setAttribute("stroke-width", 1.5); });
+  o.querySelectorAll(".mz-mapa path").forEach(p => p.setAttribute("stroke-width", +p.getAttribute("stroke-width") * .6));
+  o.hidden = false; o.querySelector(".mz-fecha").focus();
 }
 
 /* ---------------- tabelas ---------------- */
