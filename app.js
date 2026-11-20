@@ -1461,9 +1461,9 @@ function grafPeso(cods, m) {
   const rotMapa = LS ? `<span style="color:${T_LT};font-weight:bold">Lote ${esc(LS)}</span><br><span style="color:${T_MU}">${cods.length} municípios</span>` +
       (lts.length > 1 ? `<br><span style="color:${T_LT}">Vizinhos: ${esc(lts.slice(1).join(", "))}</span>` : "")
     : `<span style="color:${T_MU}">${esc(nm0)}</span><br><span style="color:${T_LT}">${esc(rl)}</span>`;
-  $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa"><div class="peso-mini">${miniMapa(cods, lts, LS)}
-        <button type="button" class="amplia-mini" title="Ampliar mapa" aria-label="Ampliar mapa">⤢</button></div>
-        <div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div></div><div>${s}</div></div>`;
+  $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa"><div class="peso-mini">${miniMapa(cods, lts, LS)}</div>
+        <div class="peso-pe"><div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div>
+        <button type="button" class="amplia-mini" title="Ampliar mapa" aria-label="Ampliar mapa">⤢</button></div></div><div>${s}</div></div>`;
   const amplia = () => { if (!APRES) ampliaMini($("#g-peso .peso-mini svg").outerHTML, $("#g-peso .peso-rot").innerHTML); };
   $("#g-peso .amplia-mini").onclick = amplia;
   $("#g-peso .peso-mini svg").addEventListener("click", amplia);
