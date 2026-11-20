@@ -462,7 +462,9 @@ html.arrastando, html.arrastando * { cursor: grabbing !important; }
   letter-spacing: .3px; border-bottom: 2px solid var(--cartao); }
 .sobre-corpo h4 { margin: 0 0 6px; font-size: 15px; color: var(--brand); }
 .sobre-corpo p { margin: 8px 0; }
-.sobre-corpo ul, .sobre-corpo ol { margin: 6px 0; padding-left: 22px; }
+/* texto justificado (20/11/2026) */
+.sobre-corpo p, .sobre-corpo li, .sobre-card p { text-align: justify; hyphens: auto; }
+.sobre-corpo ul, .sobre-corpo ol { margin: 6px 0; padding-left: 18px; }
 .sobre-corpo li { margin: 5px 0; }
 .sobre-indice { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
 .sobre-indice button { font: 13px Arial, sans-serif; color: var(--brand); background: var(--cartao); border: 1px solid transparent;
