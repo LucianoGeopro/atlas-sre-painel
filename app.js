@@ -56,6 +56,8 @@ let A, GEO = {}, LISTA = [], atual = null, mapa, camadas = {}, AREA = [];
 // seleção de vários municípios (13/11/2026): SEL = códigos selecionados (o 1º é o "principal"), BBOX = caixa da seleção,
 // COMB = modo "Combinar" (clique no mapa adiciona/remove), M = dados somados da seleção
 let SEL = [], BBOX = null, COMB = false, M = null, MES_SITE = "";
+// 20/11/2026: lote de onde veio a seleção (cartão da página inicial, #lote=11); null = seleção comum de municípios
+let LOTE_SEL = null;
 
 /* ---------------- dica (tooltip) para gráficos ---------------- */
 const dica = $("#dica");
@@ -572,14 +574,25 @@ async function carrega() {
   autocompleta($("#q"), c => COMB ? alterna(c, true) : seleciona(c));
   iniciaMapa(); legenda();
   // link com #código abre esse(s) município(s); F5 volta ao da tela; abertura nova começa no 1º
-  let ini = codsDoHash();
-  if (!ini.length && window.ATLAS_RECARGA) ini = (lembra("atlas-sel") || "").split(",").filter(c => A.municipios[c]);
-  selecionaLista(ini.length ? ini : [LISTA[0]], false);
+  let { cods: ini, lote } = codsDoHash();
+  if (!ini.length && window.ATLAS_RECARGA) {
+    const lr = lembra("atlas-lote");
+    if (lr && A.lotes[lr]) { ini = codsDoLote(lr); lote = lr; }
+    else ini = (lembra("atlas-sel") || "").split(",").filter(c => A.municipios[c]);
+  }
+  selecionaLista(ini.length ? ini : [LISTA[0]], false, lote);
   limpaHash();                                  // a barra fica no link principal: reabrir o site cai na página inicial
   $("#carregando").remove();
 }
-// #5200050 ou #5200050,5209200 (link de uma seleção)
-function codsDoHash() { return decodeURIComponent(location.hash.slice(1)).split(",").map(s => s.trim()).filter(c => A.municipios[c]); }
+// #5200050 ou #5200050,5209200 (link de uma seleção) ou #lote=11 (municípios do lote, com o lote em destaque)
+// municípios do lote: todos por onde passa a malha do lote (mesma regra dos cartões da página inicial)
+const codsDoLote = l => LISTA.filter(c => (A.municipios[c].peso || {})[l]);
+const hashDaSel = () => LOTE_SEL ? "lote=" + LOTE_SEL : SEL.join(",");
+function codsDoHash() {
+  const h = decodeURIComponent(location.hash.slice(1)).trim(), ml = h.match(/^lote=(\w+)$/i);
+  if (ml) return A.lotes[ml[1]] ? { cods: codsDoLote(ml[1]), lote: ml[1] } : { cods: [], lote: null };
+  return { cods: h.split(",").map(s => s.trim()).filter(c => A.municipios[c]), lote: null };
+}
 
 /* ---------------- mês da base ---------------- */
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -595,7 +608,7 @@ function textosDoMes(meses, MES) {
   sel.onchange = () => {
     const p = new URLSearchParams(location.search);
     sel.value === meses[0].id ? p.delete("mes") : p.set("mes", sel.value);
-    location.href = location.pathname + (p.toString() ? "?" + p : "") + "#" + SEL.join(",");
+    location.href = location.pathname + (p.toString() ? "?" + p : "") + "#" + hashDaSel();
   };
 }
 
@@ -608,8 +621,8 @@ function procura(txt) {
 }
 $("#ant").onclick = () => seleciona(LISTA[(LISTA.indexOf(atual) - 1 + LISTA.length) % LISTA.length]);
 $("#prox").onclick = () => seleciona(LISTA[(LISTA.indexOf(atual) + 1) % LISTA.length]);
-window.addEventListener("hashchange", () => { const c = codsDoHash();
-  if (c.length && c.join() !== SEL.join()) selecionaLista(c, false);
+window.addEventListener("hashchange", () => { const { cods: c, lote } = codsDoHash();
+  if (c.length && (c.join() !== SEL.join() || lote !== LOTE_SEL)) selecionaLista(c, false, lote);
   if (c.length) { fechaSobre(); fechaCapa(); limpaHash(); } });
 
 /* ---------------- mapa ---------------- */
@@ -1116,15 +1129,19 @@ function alterna(cod, soAdiciona = false) {
   else selecionaLista([...SEL, cod]);
 }
 const nomeLista = ns => ns.length === 1 ? ns[0] : ns.slice(0, -1).join(", ") + " e " + ns[ns.length - 1];
-function selecionaLista(cods, hist = true) {
+function selecionaLista(cods, hist = true, lote = null) {
   SEL = [...new Set(cods)].filter(c => A.municipios[c]); if (!SEL.length) return;
   atual = SEL[0];
+  // qualquer mudança feita depois (tirar/somar município, buscar outro) volta a ser seleção comum
+  LOTE_SEL = lote && A.lotes[lote] ? String(lote) : null;
+  guarda("atlas-lote", LOTE_SEL || "");
   const multi = SEL.length > 1, ms = SEL.map(c => A.municipios[c]);
   BBOX = ms.reduce((b, m) => [Math.min(b[0], m.bbox[0]), Math.min(b[1], m.bbox[1]), Math.max(b[2], m.bbox[2]), Math.max(b[3], m.bbox[3])],
     [1e9, 1e9, -1e9, -1e9]);
   M = multi ? agrega(SEL) : ms[0];
   guarda("atlas-sel", SEL.join(","));          // 16/11/2026: não grava mais no endereço; o F5 lê daqui
-  const nomes = ms.map(m => m.nome), curto = multi && SEL.length > 3 ? `${SEL.length} municípios` : nomeLista(nomes);
+  const nomes = ms.map(m => m.nome), curto = LOTE_SEL && multi ? `Lote ${LOTE_SEL} – ${SEL.length} municípios`
+    : multi && SEL.length > 3 ? `${SEL.length} municípios` : nomeLista(nomes);
   document.title = `${multi ? curto : nomes[0] + "/GO"} – Atlas SRE Municípios`;
   $("#titulo").textContent = multi ? curto : nomes[0];
   document.querySelector(".cab-titulo").classList.toggle("multi", multi);
@@ -1137,7 +1154,9 @@ function selecionaLista(cods, hist = true) {
   preencheArea(); destacaMunicipios(SEL); montaRotulosVias(SEL); enquadra(); atualizaRotulos();
   cartoes(M); grafSituacao(M); grafRodovia(M); grafUrbano(M); grafPeso(SEL, M); grafTipoObra(M);
   tabelaObras(M, multi); tabelaSRE(M, multi); comparacao(); barraSelecao();
-  $("#notas").textContent = (M.notas || "").replace(/\\n/g, "\n");
+  $("#notas").textContent = (M.notas || "").replace(/\\n/g, "\n") + (LOTE_SEL && multi ? `\n• Lote ${LOTE_SEL}: ` +
+    `os ${SEL.length} municípios por onde passa a malha do lote. O comparativo da composição da malha mostra só a malha dentro do lote ` +
+    `(${km2(soma(A.lotes[LOTE_SEL]))}); cartões, gráficos e quadros mostram os municípios inteiros (${M.c1_val}), com a parte que fica em outros lotes.` : "");
   $("#apres-pag").textContent = multi ? "" : "Página " + ms[0].ordem;
   if (APRES) modoApres();
 }
@@ -1190,7 +1209,8 @@ function barraSelecao() {
   $("#combinar").classList.toggle("ativo", COMB);
   $("#combinar").setAttribute("aria-pressed", COMB);
   if (b.hidden) return;
-  b.innerHTML = `<span class="sel-tit">${COMB ? "Modo combinar: clique no mapa para somar ou tirar municípios." : "Seleção:"}</span>` +
+  b.innerHTML = `<span class="sel-tit">${COMB ? "Modo combinar: clique no mapa para somar ou tirar municípios."
+      : LOTE_SEL ? `Municípios do lote ${esc(LOTE_SEL)}:` : "Seleção:"}</span>` +
     SEL.map(c => `<span class="chip" title="${esc(A.municipios[c].nome)}">${esc(A.municipios[c].nome)}` +
       (multi ? `<button type="button" data-c="${c}" aria-label="Tirar ${esc(A.municipios[c].nome)} da seleção">×</button>` : "") + `</span>`).join("") +
     (multi ? `<span class="sel-tot">Total: <b>${esc(M.c1_val)}</b></span>` +
@@ -1201,7 +1221,7 @@ function barraSelecao() {
   if (multi) {
     $("#sel-limpar").onclick = () => selecionaLista([SEL[0]]);
     $("#sel-comp").onclick = () => $("#comp").scrollIntoView({ behavior: "smooth", block: "start" });
-    $("#sel-copiar").onclick = () => { const u = location.href; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject())
+    $("#sel-copiar").onclick = () => { const u = location.origin + location.pathname + location.search + "#" + hashDaSel(); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject())
       .then(() => { $("#sel-copiar").textContent = "Link copiado ✓"; setTimeout(() => $("#sel-copiar") && ($("#sel-copiar").textContent = "Copiar link"), 1800); })
       .catch(() => prompt("Copie o link:", u)); };
   }
@@ -1355,7 +1375,7 @@ function grafTipoObra(m) {
 
 /* --- comparativo: peso da malha do município no próprio município, no(s) lote(s) e em Goiás --- */
 function pc(v) { if (v <= 0) return "0%"; return (v < 0.01 ? "<0,01" : br(v, v >= 1 ? 1 : 2)) + "%"; }
-function miniMapa(cods, lts) {
+function miniMapa(cods, lts, LS = null) {
   const todos = GEO.lotes.features; let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
   const anel = g => (g.type === "Polygon" ? [g.coordinates] : g.coordinates);
   todos.forEach(f => anel(f.geometry).forEach(p => p[0].forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); })));
@@ -1364,11 +1384,14 @@ function miniMapa(cods, lts) {
   const P = ([x, y]) => `${(ox + (x - x0) * kx * esc_).toFixed(1)},${(oy + (y1 - y) * esc_).toFixed(1)}`;
   const d = g => anel(g).map(p => p.map(r => "M" + r.map(P).join("L") + "Z").join("")).join("");
   let s = `<svg viewBox="0 0 ${S} ${S}">`;
-  todos.forEach(f => { const k = f.properties.lote, meu = lts.includes(k);
-    s += `<path class="hov" d="${d(f.geometry)}" fill="${meu ? "#7fcbb9" : "#e3ecf8"}" stroke="${meu ? "#fff" : "#a9bfdf"}" stroke-width=".7"
-            data-tip="Lote ${esc(k)}${meu ? (cods.length > 1 ? " — contém a seleção" : " — contém o município") : ""}"/>`; });
+  // seleção aberta por um lote: o lote escolhido em cor forte, os vizinhos tocados pelos municípios em cor clara
+  todos.forEach(f => { const k = String(f.properties.lote), meu = lts.includes(k), esse = LS && k === LS;
+    const cor = esse ? T_LT : meu ? (LS ? "#c5e8df" : "#7fcbb9") : "#e3ecf8";
+    const tip = esse ? " — lote selecionado" : meu ? (LS ? " — vizinho (tem parte dos municípios)" : cods.length > 1 ? " — contém a seleção" : " — contém o município") : "";
+    s += `<path class="hov" d="${d(f.geometry)}" fill="${cor}" stroke="${meu ? "#fff" : "#a9bfdf"}" stroke-width=".7"
+            data-tip="Lote ${esc(k)}${tip}"/>`; });
   GEO.municipios.features.filter(f => cods.includes(f.properties.cod)).forEach(fm =>
-    s += `<path d="${d(fm.geometry)}" fill="${T_MU}" stroke="${T_MU}" stroke-width=".6" pointer-events="none"/>`);
+    s += `<path d="${d(fm.geometry)}" fill="${LS ? "none" : T_MU}" stroke="${T_MU}" stroke-width="${LS ? ".5" : ".6"}" pointer-events="none"/>`);
   if (lts.length > 1) todos.filter(f => lts.includes(f.properties.lote)).forEach(f => {
     let mx = 0, my = 0, n = 0; anel(f.geometry).forEach(p => p[0].forEach(c => { mx += c[0]; my += c[1]; n++; }));
     const [x, y] = P([mx / n, my / n]).split(",");
@@ -1388,20 +1411,28 @@ function grafPeso(cods, m) {
       `<button type="button" data-un="${k}" aria-pressed="${k === MODO_PESO}">${t}</button>`).join("")}</div>` +
     cab("Comparativo da composição da malha", UN_PESO[MODO_PESO][1] + " (estaduais principais)");
   if (!tm) { $("#g-peso").innerHTML = h + `<div class="g-vazio">${SEM}</div>`; return; }
-  const lts = Object.keys(ml).sort((a, b) => soma(ml[b]) - soma(ml[a]));
+  // 20/11/2026: seleção aberta por um lote (#lote=N) — o lote escolhido vem primeiro, em destaque, e some a linha
+  // "Seleção", que somava os municípios inteiros (com a parte deles que fica em outros lotes) e passava do lote
+  const LS = LOTE_SEL && ml[LOTE_SEL] ? LOTE_SEL : null;
+  let lts = Object.keys(ml).sort((a, b) => soma(ml[b]) - soma(ml[a]));
+  if (LS) lts = [LS, ...lts.filter(k => k !== LS)];
   const GO = A.goias.situacao, GOt = A.goias.total, LT = A.lotes;
   const sits = ["PAV", "DUP", "EOD", "EOP", "IMP", "LEN"];
   const rl = lts.length === 1 ? "Lote " + lts[0] : "Lotes " + lts.slice(0, -1).join(", ") + " e " + lts[lts.length - 1];
   // barras em Km (layout 04): cada linha mostra a composição da própria malha; extensão total à direita
   const rotM = m.multi ? `Seleção (${cods.length})` : m.nome;
-  const linhas = [{ rot: rotM, r: ms, cor: T_MU }, ...lts.map(k => ({ rot: "Lote " + k, r: LT[k] || {}, cor: T_LT })),
-    { rot: "Goiás", r: GO, cor: T_GO }];
+  const linhas = LS
+    ? [...lts.map(k => ({ rot: "Lote " + k, r: LT[k] || {}, cor: T_LT, dest: k === LS })), { rot: "Goiás", r: GO, cor: T_GO }]
+    : [{ rot: rotM, r: ms, cor: T_MU }, ...lts.map(k => ({ rot: "Lote " + k, r: LT[k] || {}, cor: T_LT })),
+       { rot: "Goiás", r: GO, cor: T_GO }];
   const W = 640, x0 = 150, xT = W - 92, bw = xT - x0 - 10, bh = 22, gap = 22;
   let s = `<svg class="graf graf-comp" viewBox="0 0 ${W} ${linhas.length * (bh + gap) + 4}">`;
   s += `<text x="${W - 2}" y="11" font-size="10.5" font-weight="bold" fill="#52514e" text-anchor="end">Extensão total</text>`;
   linhas.forEach((l, i) => {
     const y = 16 + i * (bh + gap), tot = soma(l.r); let x = x0;
-    s += `<text x="${x0 - 8}" y="${y + bh / 2 + 4}" font-size="11.5" font-weight="bold" text-anchor="end" style="fill:${l.cor}" fill="${l.cor}">${esc(l.rot)}</text>`;
+    if (l.dest) s += `<rect x="0" y="${y - 4}" width="${W}" height="${bh + 8}" rx="4" fill="${T_LT}" fill-opacity=".12" stroke="${T_LT}" stroke-width="1.2"/>` +
+      `<text x="${x0 - 8}" y="${y + bh + 1}" font-size="8.5" text-anchor="end" fill="${T_LT}">selecionado</text>`;
+    s += `<text x="${x0 - 8}" y="${y + bh / 2 + (l.dest ? 1 : 4)}" font-size="${l.dest ? 12.5 : 11.5}" font-weight="bold" text-anchor="end" style="fill:${l.cor}" fill="${l.cor}">${esc(l.rot)}</text>`;
     for (const c of sits) {
       const v = l.r[c]; if (!v) continue;
       const w = bw * v / tot, rot = km2(v), pc = br(100 * v / tot) + "%";
@@ -1420,9 +1451,15 @@ function grafPeso(cods, m) {
     s += `<text x="${xT}" y="${y + bh / 2 + 4}" font-size="11" font-weight="bold" style="fill:${l.cor}" fill="${l.cor}">${km2(tot)}</text>`;
   });
   s += `</svg><div class="leg-g">${sits.map(c => `<span><i style="background:${SIT[c][1]}"></i>${SIT[c][0]}</span>`).join("")}</div>`;
+  if (LS) s += `<div class="g-sub" style="margin-top:4px">Extensões do lote ${esc(LS)}: só a malha dentro do lote. Os ${cods.length} municípios ` +
+    `têm ${km2(tm)} somados inteiros, porque parte deles fica em ${lts.length > 2 ? "outros lotes" : "outro lote"}; ` +
+    `esse total aparece nos cartões e nos quadros por município.</div>`;
   const nm0 = m.multi ? `Seleção: ${cods.length} municípios` : (m.nome.length <= 22 ? m.nome : m.nome.slice(0, 21) + "…");
-  $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa">${miniMapa(cods, lts)}
-        <div class="peso-rot"><span style="color:${T_MU}">${esc(nm0)}</span><br><span style="color:${T_LT}">${esc(rl)}</span><br><span style="color:${T_GO}">Goiás</span></div></div><div>${s}</div></div>`;
+  const rotMapa = LS ? `<span style="color:${T_LT};font-weight:bold">Lote ${esc(LS)}</span><br><span style="color:${T_MU}">${cods.length} municípios</span>` +
+      (lts.length > 1 ? `<br><span style="color:${T_LT}">Vizinhos: ${esc(lts.slice(1).join(", "))}</span>` : "")
+    : `<span style="color:${T_MU}">${esc(nm0)}</span><br><span style="color:${T_LT}">${esc(rl)}</span>`;
+  $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa">${miniMapa(cods, lts, LS)}
+        <div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div></div><div>${s}</div></div>`;
   $("#g-peso").querySelectorAll(".seg-un button").forEach(b => b.onclick = () => {
     MODO_PESO = b.dataset.un; try { localStorage.setItem("atlas-peso-un", MODO_PESO); } catch (e) {}
     grafPeso(cods, m);

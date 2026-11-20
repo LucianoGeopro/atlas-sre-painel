@@ -87,7 +87,7 @@ async function carrega() {
   $("#grade").innerHTML = ids.map(l => {
     const s = A.lotes[l], tot = soma(s), pav = (s.PAV || 0) + (s.DUP || 0), cods = munLote[l] || [];
     const barra = ORD.filter(k => s[k]).map(k => `<i style="flex:${s[k]};background:${SIT[k][1]}" title="${SIT[k][0]}: ${br(s[k], 2)} Km"></i>`).join("");
-    return `<a class="cartao" href="mapa.html#${cods.join(",")}" title="Abrir os ${cods.length} municípios do lote ${l} no mapa">
+    return `<a class="cartao" href="mapa.html#lote=${l}" title="Abrir os ${cods.length} municípios do lote ${l} no mapa">
       <div class="foto"><span class="sigla">LOTE ${l}</span>${svgLotes(lotes, l)}</div>
       <div class="corpo"><div class="nome">Lote ${l}</div>
         <div class="total"><b>${br(tot, 2)} Km</b></div>

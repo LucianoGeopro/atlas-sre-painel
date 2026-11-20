@@ -105,6 +105,9 @@ document.documentElement.classList.add("modo-painel");</script>
       <li><b>Precisão:</b> extensões em Km com 2 casas decimais e percentuais com 1 casa, sem arredondar as partes para fechar o total.</li>
       <li><b>Combinação de municípios:</b> Km, área e faixa de domínio são somados; o que cruza a divisa entre municípios selecionados
         conta uma vez só; os índices são recalculados sobre o total da seleção.</li>
+      <li><b>Seleção por lote:</b> o cartão de um lote, na página inicial, abre juntos todos os municípios por onde passa a malha
+        do lote. No comparativo da composição da malha, o lote vale só pela malha dentro dele (o trecho que passa para outro lote não
+        entra); cartões, gráficos e quadros por município continuam com a extensão inteira de cada município.</li>
     </ol>
 
     <h3 id="s-ind">Os indicadores</h3>
@@ -144,7 +147,8 @@ document.documentElement.classList.add("modo-painel");</script>
       <li><b>Urbano × rural:</b> Km dentro e fora do perímetro urbano — trechos urbanos têm exigências próprias de travessia,
         segurança e acessos.</li>
       <li><b>Peso do município:</b> quanto os Km do município representam do lote de manutenção e do estado, em cada situação
-        (Km do município ÷ Km do lote ou do estado).</li>
+        (Km do município ÷ Km do lote ou do estado). Quando a página é aberta por um lote, o próprio lote vem em primeiro, em
+        destaque, só com a malha dentro dele, seguido dos lotes vizinhos (que têm parte dos municípios) e de Goiás.</li>
       <li><b>Obras e projetos:</b> gráfico e quadro com as obras em andamento e os projetos, por intervenção, com a extensão no
         município e a do contrato.</li>
       <li><b>SRE – quadro de trechos:</b> todos os trechos que passam pelo município, com início, fim, quilometragem, extensão total,
@@ -170,6 +174,8 @@ document.documentElement.classList.add("modo-painel");</script>
       <li><b>Recorte municipal:</b> por ser medido dentro do limite do IBGE, o valor de um município pode diferir da extensão
         oficial de um trecho inteiro ou de outras bases.</li>
       <li><b>Somas entre municípios:</b> para somar municípios, use “Combinar municípios”, que não conta duas vezes o que cruza a divisa.</li>
+      <li><b>Lote × municípios do lote:</b> um município pode estar em mais de um lote (Goiânia está em três), por isso a soma dos
+        municípios de um lote é maior que o lote. O total do lote é o do cartão na página inicial e o da linha do lote no comparativo.</li>
     </ul>
     <p class="sobre-nota">Diretoria de Planejamento – DPL · Gerência da Rede Física – GEREF · GOINFRA. Dúvidas: (62) 3265-4149 ·
       redefisica.goinfra@goias.gov.br</p>
@@ -273,8 +279,8 @@ document.documentElement.classList.add("modo-painel");</script>
 <div id="carregando" class="carregando">Carregando o atlas…</div>
 
 <script src="lib/leaflet/leaflet.js"></script>
-<script src="app.js?v=13"></script>
-<script src="novidades.js?v=5"></script>
+<script src="app.js?v=14"></script>
+<script src="novidades.js?v=6"></script>
 <script src="painel.js?v=2"></script>
 </body>
 </html>

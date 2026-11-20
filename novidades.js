@@ -3,7 +3,9 @@
    é lembrado no navegador; o botão #novid-btn (se a página tiver) reabre. Some no modo apresentação e na impressão. */
 (() => {
   "use strict";
-  const NOVIDADES = { id: "2026-11-19g", data: "19/11/2026", itens: [
+  const NOVIDADES = { id: "2026-11-20a", data: "20/11/2026", itens: [
+    "<b>Lotes de manutenção:</b> ao abrir um lote pela página inicial, o comparativo da composição da malha mostra o lote escolhido em primeiro e em destaque, só com a malha dentro dele, seguido dos lotes vizinhos e de Goiás. Saiu a linha “Seleção”, que somava os municípios inteiros e passava do total do lote.",
+    "O <b>Copiar link</b> de um lote abre o mesmo lote para quem receber.",
     "Quadros de obras e projetos e de trechos do SRE: clique numa linha e o mapa dá zoom nela, dentro do município.",
     "Mapa: ao afastar o zoom ou arrastar, aparecem todos os municípios de Goiás, com as rodovias, obras e projetos.",
     "Perímetro urbano no mapa agora em branco transparente (antes amarelo), para destacar as rodovias.",
