@@ -7,7 +7,7 @@
   "use strict";
   const HIST = [
     { data: "20/11/2026", itens: [
-      "Comparativo da composição da malha: novo botão <b>⤢ Ampliar mapa</b>, que mostra o mapa dos lotes em tamanho maior.",
+      "Comparativo da composição da malha: clique no mapa dos lotes (ou no botão <b>⤢</b> no canto dele) para vê-lo em tamanho maior; com poucas linhas, as barras ficam maiores e mais fáceis de ler.",
       "<b>Lotes de manutenção:</b> ao abrir um lote pela página inicial, o comparativo da composição da malha mostra o lote escolhido em primeiro e em destaque, só com a malha dentro dele, seguido dos lotes vizinhos e de Goiás. Saiu a linha “Seleção”, que somava os municípios inteiros e passava do total do lote.",
       "O <b>Copiar link</b> de um lote abre o mesmo lote para quem receber.",
     ] },
