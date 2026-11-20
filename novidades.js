@@ -1,10 +1,10 @@
-/* Aviso de novidades — ATUALIZAR A CADA PUBLICAÇÃO: pôr os itens do dia no topo de HIST (data dd/mm/aaaa) e trocar o ID
-   (id novo = o aviso aparece de novo para todos). 20/11/2026: o aviso automático mostra só a atualização mais recente
-   (HIST[0]); o botão #novid-btn (🔔) abre o histórico inteiro, por data. Fica por cima da capa, fecha no ✕/Entendi,
-   é lembrado no navegador. Some no modo apresentação e na impressão. */
+/* Aviso de novidades — ATUALIZAR A CADA PUBLICAÇÃO: pôr os itens do dia no topo de HIST (data dd/mm/aaaa).
+   20/11/2026: o aviso automático mostra só a atualização mais recente (HIST[0]); o botão #novid-btn (🔔) abre o
+   histórico inteiro, por data. "Entendi"/✕ vale para a DATA de HIST[0]: o aviso só volta a abrir sozinho quando entrar
+   um bloco com data nova (itens a mais no mesmo dia não reabrem). Guardado em localStorage e, de reserva, num cookie.
+   Fica por cima da capa. Some no modo apresentação e na impressão. */
 (() => {
   "use strict";
-  const ID = "2026-11-20b";
   const HIST = [
     { data: "20/11/2026", itens: [
       "Comparativo da composição da malha: novo botão <b>⤢ Ampliar mapa</b>, que mostra o mapa dos lotes em tamanho maior.",
@@ -24,6 +24,13 @@
     ] },
   ];
   const CHAVE = "novid:" + (location.pathname.split("/")[1] || "local");     // atlas e painel guardam separado
+  const CK = CHAVE.replace(/[^\w-]/g, "_");
+  function visto() {                     // data da última atualização já fechada neste navegador
+    const dt = v => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v); return m ? `${m[3]}/${m[2]}/${m[1]}` : v; };  // id antigo "2026-11-20b"
+    try { const v = localStorage.getItem(CHAVE); if (v) return dt(v); } catch (e) {}
+    try { const m = document.cookie.match(new RegExp("(?:^|; )" + CK + "=([^;]*)")); if (m) return decodeURIComponent(m[1]); } catch (e) {}
+    return null;
+  }
   const css = `
 .novid { position: fixed; right: 18px; bottom: 18px; z-index: 5050; width: min(380px, calc(100vw - 32px)); box-sizing: border-box;
   background: #fff; color: #2b2b2b; border: 1px solid #d5dbd7; border-left: 5px solid #00923f; border-radius: 6px;
@@ -68,10 +75,14 @@ html.apres .novid, html.apres-img .novid { display: none !important; }
   const apres = () => /apres/.test(document.documentElement.className);
   function mostra(forcar) {
     if (apres()) return;
-    if (!forcar) { try { if (localStorage.getItem(CHAVE) === ID) return; } catch (e) {} }
+    if (!forcar && visto() === HIST[0].data) return;
     monta(!!forcar); c.hidden = false;
   }
-  function fecha() { c.hidden = true; try { localStorage.setItem(CHAVE, ID); } catch (e) {} }
+  function fecha() {
+    c.hidden = true; const v = HIST[0].data;
+    try { localStorage.setItem(CHAVE, v); } catch (e) {}
+    try { document.cookie = CK + "=" + encodeURIComponent(v) + "; max-age=31536000; path=/; SameSite=Lax"; } catch (e) {}
+  }
   c.querySelector(".novid-x").onclick = fecha;
   c.querySelector(".novid-ok").onclick = fecha;
   const b = document.getElementById("novid-btn");
