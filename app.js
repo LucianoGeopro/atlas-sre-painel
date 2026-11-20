@@ -1391,7 +1391,8 @@ function miniMapa(cods, lts, LS = null) {
     s += `<path class="hov" d="${d(f.geometry)}" fill="${cor}" stroke="${meu ? "#fff" : "#a9bfdf"}" stroke-width=".7"
             data-tip="Lote ${esc(k)}${tip}"/>`; });
   GEO.municipios.features.filter(f => cods.includes(f.properties.cod)).forEach(fm =>
-    s += `<path d="${d(fm.geometry)}" fill="${LS ? "none" : T_MU}" stroke="${T_MU}" stroke-width="${LS ? ".5" : ".6"}" pointer-events="none"/>`);
+    s += `<path class="hov" d="${d(fm.geometry)}" fill="${LS ? "none" : T_MU}" stroke="${T_MU}" stroke-width="${LS ? ".5" : ".6"}" pointer-events="all"
+            data-tip="<b>${esc((A.municipios[fm.properties.cod] || {}).nome || "")}</b>"/>`);   // 20/11/2026: nome do município ao passar o mouse
   if (lts.length > 1) todos.filter(f => lts.includes(f.properties.lote)).forEach(f => {
     let mx = 0, my = 0, n = 0; anel(f.geometry).forEach(p => p[0].forEach(c => { mx += c[0]; my += c[1]; n++; }));
     const [x, y] = P([mx / n, my / n]).split(",");
