@@ -49,7 +49,7 @@ window.PAINEL = (function () {             // window.: o app.js procura window.P
     [".b-mapa", "#centro"],
     [".cab", dirCab], [".b-ind", dir.ind], [".b-graf", dir.graf], [".b-peso", dir.peso], ["#comp", dir.comp],
     [".b-obras", dir.obras], [".b-sre", dir.sre], [".b-notas", dir.notas], [".rodape", rodapeDir],
-    ["#tema", "#tp-btns"], ["#ver-sobre", "#tp-btns"]
+    ["#tema", "#tp-btns"], ["#novid-btn", "#tp-btns"], ["#ver-sobre", "#tp-btns"]   // 20/11/2026: Novidades entre Tema e Sobre
   ].map(([s, d]) => ({ el: q(s), destino: typeof d === "string" ? q(d) : d, marca: null }));
 
   function monta() {
