@@ -1425,7 +1425,9 @@ function grafPeso(cods, m) {
     ? [...lts.map(k => ({ rot: "Lote " + k, r: LT[k] || {}, cor: T_LT, dest: k === LS })), { rot: "Goiás", r: GO, cor: T_GO }]
     : [{ rot: rotM, r: ms, cor: T_MU }, ...lts.map(k => ({ rot: "Lote " + k, r: LT[k] || {}, cor: T_LT })),
        { rot: "Goiás", r: GO, cor: T_GO }];
-  const W = 640, x0 = 150, xT = W - 92, bw = xT - x0 - 10, bh = 22, gap = 22;
+  // 20/11/2026: com poucas linhas as barras ficam mais altas, para o gráfico acompanhar a altura do mini mapa
+  const W = 640, x0 = 150, xT = W - 92, bw = xT - x0 - 10, nL = linhas.length,
+    bh = nL <= 3 ? 34 : nL <= 5 ? 28 : 22, gap = nL <= 3 ? 30 : nL <= 5 ? 24 : 22, fT = nL <= 5 ? 10.5 : 9.5;
   let s = `<svg class="graf graf-comp" viewBox="0 0 ${W} ${linhas.length * (bh + gap) + 4}">`;
   s += `<text x="${W - 2}" y="11" font-size="10.5" font-weight="bold" fill="#52514e" text-anchor="end">Extensão total</text>`;
   linhas.forEach((l, i) => {
@@ -1440,11 +1442,12 @@ function grafPeso(cods, m) {
               data-tip="<b>${esc(l.rot)}</b><br>${SIT[c][0]}: ${rot} (${pc})"/>`;
       const tc = `font-weight="bold" text-anchor="middle" pointer-events="none" fill="${BRANCO.has(c) ? "#fff" : "#0b0b0b"}"`;
       if (MODO_PESO === "ambos") {          // duas linhas dentro da barra: Km em cima, % embaixo
-        if (w > textW(rot, 9) + 8) s += `<text x="${x + w / 2}" y="${y + 9.5}" font-size="9" ${tc}>${rot}</text>` +
-          `<text x="${x + w / 2}" y="${y + 19}" font-size="9" ${tc}>${pc}</text>`;
+        const f2 = fT - .5;
+        if (w > textW(rot, f2) + 8) s += `<text x="${x + w / 2}" y="${y + bh / 2 - 1.5}" font-size="${f2}" ${tc}>${rot}</text>` +
+          `<text x="${x + w / 2}" y="${y + bh / 2 + f2 - .5}" font-size="${f2}" ${tc}>${pc}</text>`;
       } else {
         const t = MODO_PESO === "pct" ? pc : rot;
-        if (w > textW(t, 9.5) + 8) s += `<text x="${x + w / 2}" y="${y + bh / 2 + 3.5}" font-size="9.5" ${tc}>${t}</text>`;
+        if (w > textW(t, fT) + 8) s += `<text x="${x + w / 2}" y="${y + bh / 2 + fT * .37}" font-size="${fT}" ${tc}>${t}</text>`;
       }
       x += w;
     }
@@ -1458,10 +1461,12 @@ function grafPeso(cods, m) {
   const rotMapa = LS ? `<span style="color:${T_LT};font-weight:bold">Lote ${esc(LS)}</span><br><span style="color:${T_MU}">${cods.length} municípios</span>` +
       (lts.length > 1 ? `<br><span style="color:${T_LT}">Vizinhos: ${esc(lts.slice(1).join(", "))}</span>` : "")
     : `<span style="color:${T_MU}">${esc(nm0)}</span><br><span style="color:${T_LT}">${esc(rl)}</span>`;
-  $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa">${miniMapa(cods, lts, LS)}
-        <div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div>
-        <button type="button" class="amplia-mini" title="Ver o mapa dos lotes em tamanho maior">⤢ Ampliar mapa</button></div><div>${s}</div></div>`;
-  $("#g-peso .amplia-mini").onclick = () => ampliaMini($("#g-peso .peso-mapa svg").outerHTML, $("#g-peso .peso-rot").innerHTML);
+  $("#g-peso").innerHTML = h + `<div class="peso"><div class="peso-mapa"><div class="peso-mini">${miniMapa(cods, lts, LS)}
+        <button type="button" class="amplia-mini" title="Ampliar mapa" aria-label="Ampliar mapa">⤢</button></div>
+        <div class="peso-rot">${rotMapa}<br><span style="color:${T_GO}">Goiás</span></div></div><div>${s}</div></div>`;
+  const amplia = () => { if (!APRES) ampliaMini($("#g-peso .peso-mini svg").outerHTML, $("#g-peso .peso-rot").innerHTML); };
+  $("#g-peso .amplia-mini").onclick = amplia;
+  $("#g-peso .peso-mini svg").addEventListener("click", amplia);
   $("#g-peso").querySelectorAll(".seg-un button").forEach(b => b.onclick = () => {
     MODO_PESO = b.dataset.un; try { localStorage.setItem("atlas-peso-un", MODO_PESO); } catch (e) {}
     grafPeso(cods, m);
