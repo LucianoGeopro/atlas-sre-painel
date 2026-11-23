@@ -178,7 +178,7 @@ html.modo-painel .mapa .btn-mapa, html.modo-painel .mapa .escala-num {
   display: inline-flex; align-items: center; gap: 6px; height: 34px; box-sizing: border-box; padding: 0 10px; gap: 5px;
   border: 1px solid var(--c-bd); border-radius: 10px; background: var(--c-bg); color: var(--c-tx) !important;
   box-shadow: var(--c-sombra); font: 700 12.5px "Segoe UI", Inter, system-ui, Arial, sans-serif; white-space: nowrap; }
-html.modo-painel .mapa .btn-mapa { cursor: pointer; transition: background .15s, border-color .15s; }
+html.modo-painel .mapa .btn-mapa { cursor: pointer; transition: background .15s, border-color .15s; padding: 0 8px; }   /* 23/11: 8 px p/ caber o ícone de camadas */
 html.modo-painel .mapa .btn-mapa:hover { background: var(--c-hover); border-color: var(--p-verde); }
 html.modo-painel .mapa .btn-mapa:focus-visible { outline: 2px solid var(--p-verde); outline-offset: 1px; }
 html.modo-painel .mapa .btn-mapa.btn-coord.ativo { background: #1f5fa8; border-color: #1f5fa8; color: #fff !important; }
@@ -187,6 +187,13 @@ html.modo-painel .mapa .escala-num .en-rot { text-transform: none; font-weight: 
 html.modo-painel .mapa .escala-num .en-val { background: var(--c-campo); border-radius: 7px; padding: 4px 8px; font-size: 13px; }
 /* norte, barra de escala e leitura da coordenada: continuam claros (elementos do mapa), só arredondados */
 html.modo-painel .mapa .norte { border: 1px solid #dfe5e1; border-radius: 10px; padding: 4px 6px 2px; margin: 10px 10px 0 0;
+  box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
+html.modo-painel .mapa .fundo-btn { width: 34px; height: 34px; box-sizing: border-box; border: 1px solid var(--c-bd);
+  border-radius: 10px; background: var(--c-bg); box-shadow: var(--c-sombra); }
+html.modo-painel .mapa .fundo-btn svg path { stroke: var(--c-tx); }
+html.modo-painel .mapa .fundo-btn svg path[fill] { fill: var(--c-bg); }
+html.modo-painel .mapa .fundo-btn:hover, html.modo-painel .mapa .fundo-btn[aria-expanded=true] { background: var(--c-hover); border-color: var(--p-verde); }
+html.modo-painel .mapa .fundo-menu { top: 40px; left: 0; border: 1px solid #dfe5e1; border-radius: 10px;
   box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
 html.modo-painel .mapa .escala-barra, html.modo-painel .mapa .leitura-coord { border: 1px solid #dfe5e1; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
