@@ -207,9 +207,13 @@ function abrePop(ll, d) {
     .map(e => e.getBoundingClientRect()).filter(r => r.width).map(f).map(v => v + 8));
   let pl = fx(".leaflet-top.leaflet-left .leaflet-control", r => r.right - cr.left), pr = fx(".leaflet-top.leaflet-right .leaflet-control", r => cr.right - r.left);
   let pb = fx(".leaflet-bottom .leaflet-control", r => cr.bottom - r.top);
+  // PAINEL (23/11/2026): os botões do mapa viraram uma barra no alto — o popup abre abaixo dela (pt)
+  let pt = fx(".leaflet-top.leaflet-left .leaflet-control", r => r.bottom - cr.top);
+  if (document.documentElement.classList.contains("modo-painel")) pl = 10;
   if (cr.width - pl - pr < 280) pl = pr = 10;
   if (cr.height - pb < 260) pb = 10;
-  const pop = L.popup({ className: "pp", maxWidth: 360, minWidth: 250, autoPanPaddingTopLeft: [pl, 10], autoPanPaddingBottomRight: [pr, pb] })
+  if (cr.height - pt - pb < 220) pt = 10;
+  const pop = L.popup({ className: "pp", maxWidth: 360, minWidth: 250, autoPanPaddingTopLeft: [pl, pt], autoPanPaddingBottomRight: [pr, pb] })
     .setLatLng(ll).setContent(h).openOn(mapa);
   const b = pop.getElement()?.querySelector(".pp-bt"); if (b) b.onclick = () => verNoQuadro(d.q, d.cod);
 }
@@ -753,10 +757,16 @@ function iniciaMapa() {
   const en = new EscNum().addTo(mapa);
   const atualizaEsc = () => {
     const t = mapa.getSize(); if (!t.x) return;
+    // PAINEL (23/11/2026): no modo painel a escala numérica fica embaixo, logo acima da barra de escala;
+    // na folha A3 (apresentação) volta ao lugar de sempre, abaixo do zoom
+    const cc = mapa._controlCorners, emPainel = document.documentElement.classList.contains("modo-painel");
+    if (emPainel && en._d.nextSibling !== eb._d) cc.bottomleft.insertBefore(en._d, eb._d);
+    else if (!emPainel && en._d.parentNode !== cc.topleft) cc.topleft.insertBefore(en._d, cc.topleft.children[1] || null);
     const y = t.y / 2, x0 = Math.max(0, t.x / 2 - 50);
     const mpp = mapa.distance(mapa.containerPointToLatLng([x0, y]), mapa.containerPointToLatLng([x0 + 100, y])) / 100;
     const folha = APRES && !IMG, mmPx = folha ? 420 / FOLHA_W : 25.4 / 96;
-    en._d.textContent = "ESCALA 1:" + br(Math.round(mpp * 1000 / mmPx / 1000) * 1000, 0);
+    // PAINEL (23/11/2026): rótulo e valor separados (cartão "Escala | 1:…" no painel; na folha lê "ESCALA 1:…")
+    en._d.innerHTML = `<span class="en-rot">Escala</span> <b class="en-val">1:${br(Math.round(mpp * 1000 / mmPx / 1000) * 1000, 0)}</b>`;
     const maxPx = (folha ? 32 : 40) / mmPx;
     let melhor = null;
     for (const seg of [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500])
