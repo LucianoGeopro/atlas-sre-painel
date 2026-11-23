@@ -7,6 +7,7 @@
   "use strict";
   const HIST = [
     { data: "23/11/2026", itens: [
+      "Novo: botão de <b>camadas</b> no mapa, ao lado de <b>Coordenadas</b>, para trocar o fundo: Satélite (padrão), Satélite + nomes, OpenStreetMap, Ruas (claro) ou Topográfico.",
       "Mapa com visual novo: os botões de visualização (aproximar/afastar, <b>Município</b>, <b>Expandir mapa</b> e <b>Coordenadas</b>) agora ficam numa barra no alto do mapa, e a escala numérica fica embaixo, junto da barra de escala.",
       "Barra de escala do mapa mais fácil de ler: números centralizados em cada divisão, com tracinhos, e caixa ajustada ao tamanho da barra.",
     ] },
