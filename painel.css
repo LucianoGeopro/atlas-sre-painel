@@ -150,3 +150,43 @@ html.modo-painel .dir-rodape .rodape { padding: 0; background: none; text-align:
   .tp-mes { border-left: 0; padding-left: 0; }
   .painel-app { padding: 12px 16px; }
 }
+
+/* controles de visualização do mapa (23/11/2026): cartões arredondados numa barra no alto do mapa
+   ([+ −] · Município · Expandir mapa · Coordenadas); cartão "Escala 1:…" embaixo, acima da barra de escala
+   (o app.js move a escala numérica para lá só no modo painel).
+   Só no modo painel; na folha A3 da apresentação vale o style.css. */
+.escala-num .en-rot { text-transform: uppercase; }          /* folha A3: continua "ESCALA 1:…" */
+html.modo-painel {
+  --c-bg: #fff; --c-bd: #dfe5e1; --c-tx: #1d2b24; --c-mut: #6b7570; --c-campo: #f2f5f3; --c-hover: #f3faf6;
+  --c-sombra: 0 1px 4px rgba(16, 40, 28, .18);
+}
+html.modo-painel[data-tema=escuro] {
+  --c-bg: #24282a; --c-bd: #3a3f42; --c-tx: #e4e4df; --c-mut: #a5a9a6; --c-campo: #1a1d1f; --c-hover: #2c3533;
+  --c-sombra: 0 1px 4px rgba(0, 0, 0, .5);
+}
+html.modo-painel .mapa .leaflet-top.leaflet-left { display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  padding: 10px 0 0 10px; right: 58px; }
+html.modo-painel .mapa .leaflet-top.leaflet-left > .leaflet-control { margin: 0; float: none; clear: none; }
+html.modo-painel .mapa .leaflet-bar { display: flex; height: 34px; box-sizing: border-box; border: 1px solid var(--c-bd);
+  border-radius: 10px; box-shadow: var(--c-sombra); overflow: hidden; background: var(--c-bg); }
+html.modo-painel .mapa .leaflet-bar a { width: 32px; height: 32px; line-height: 32px; font-size: 18px; color: var(--c-tx);
+  background: var(--c-bg); border: 0; border-radius: 0 !important; }
+html.modo-painel .mapa .leaflet-bar a + a { border-left: 1px solid var(--c-bd); }
+html.modo-painel .mapa .leaflet-bottom.leaflet-left .escala-num { height: 30px; margin-bottom: 6px; }
+html.modo-painel .mapa .leaflet-bar a:hover { background: var(--c-hover); color: var(--p-verde); }
+html.modo-painel .mapa .btn-mapa, html.modo-painel .mapa .escala-num {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; box-sizing: border-box; padding: 0 10px; gap: 5px;
+  border: 1px solid var(--c-bd); border-radius: 10px; background: var(--c-bg); color: var(--c-tx) !important;
+  box-shadow: var(--c-sombra); font: 700 12.5px "Segoe UI", Inter, system-ui, Arial, sans-serif; white-space: nowrap; }
+html.modo-painel .mapa .btn-mapa { cursor: pointer; transition: background .15s, border-color .15s; }
+html.modo-painel .mapa .btn-mapa:hover { background: var(--c-hover); border-color: var(--p-verde); }
+html.modo-painel .mapa .btn-mapa:focus-visible { outline: 2px solid var(--p-verde); outline-offset: 1px; }
+html.modo-painel .mapa .btn-mapa.btn-coord.ativo { background: #1f5fa8; border-color: #1f5fa8; color: #fff !important; }
+html.modo-painel .mapa .escala-num { padding: 0 4px 0 10px; gap: 6px; }
+html.modo-painel .mapa .escala-num .en-rot { text-transform: none; font-weight: 400; font-size: 12px; color: var(--c-mut); }
+html.modo-painel .mapa .escala-num .en-val { background: var(--c-campo); border-radius: 7px; padding: 4px 8px; font-size: 13px; }
+/* norte, barra de escala e leitura da coordenada: continuam claros (elementos do mapa), só arredondados */
+html.modo-painel .mapa .norte { border: 1px solid #dfe5e1; border-radius: 10px; padding: 4px 6px 2px; margin: 10px 10px 0 0;
+  box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
+html.modo-painel .mapa .escala-barra, html.modo-painel .mapa .leitura-coord { border: 1px solid #dfe5e1; border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
