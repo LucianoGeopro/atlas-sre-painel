@@ -69,7 +69,7 @@ window.PAINEL = (function () {             // window.: o app.js procura window.P
   // recolher os painéis laterais (como as setas ◂ ▸ do SIPLAWEB)
   function recolhe(lado, fechar) {
     html.classList.toggle(lado + "-fechado", fechar); guardaP("painel-" + lado, fechar ? "0" : "1");
-    q("#rec-" + lado).textContent = (lado === "esq") === fechar ? "▸" : "◂";
+    q("#rec-" + lado).textContent = (lado === "esq") === fechar ? "❯" : "❮";   // 23/11/2026: setas mais grossas (antes ▸ ◂)
     if (typeof mapa !== "undefined" && mapa) setTimeout(() => { mapa.invalidateSize(); }, 260);
   }
   q("#rec-esq").onclick = () => recolhe("esq", !html.classList.contains("esq-fechado"));
