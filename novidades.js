@@ -6,6 +6,9 @@
 (() => {
   "use strict";
   const HIST = [
+    { data: "23/11/2026", itens: [
+      "Mapa com visual novo: os botões de visualização (aproximar/afastar, <b>Município</b>, <b>Expandir mapa</b> e <b>Coordenadas</b>) agora ficam numa barra no alto do mapa, e a escala numérica fica embaixo, junto da barra de escala.",
+    ] },
     { data: "20/11/2026", itens: [
       "O botão <b>🔔 Novidades</b> agora fica na barra verde do topo, entre o tema e o <b>Sobre os dados</b>; ele mostra o histórico de atualizações.",
       "Comparativo da composição da malha: clique no mapa dos lotes (ou no botão <b>⤢</b> ao lado dos nomes, embaixo dele) para vê-lo em tamanho maior; passe o mouse sobre um município para ver o nome; com poucas linhas, as barras ficam maiores e mais fáceis de ler.",
