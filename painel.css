@@ -34,18 +34,21 @@ html.modo-painel body { display: flex; flex-direction: column; overflow: hidden;
 .tp-btns .tp-btn:hover, html.modo-painel .tp-btns .tema-btn:hover { background: rgba(255,255,255,.16); }
 /* três colunas: painel esquerdo · mapa · painel direito */
 .painel-app { flex: 1 1 auto; min-height: 0; display: grid; padding: 12px 0 12px 12px;
-  grid-template-columns: 290px 20px minmax(0, 1fr) 20px minmax(560px, 44vw); transition: grid-template-columns .25s; }
-html.esq-fechado .painel-app { grid-template-columns: 0 20px minmax(0, 1fr) 20px minmax(560px, 44vw); }
-html.dir-fechado .painel-app { grid-template-columns: 290px 20px minmax(0, 1fr) 20px 0; }
-html.esq-fechado.dir-fechado .painel-app { grid-template-columns: 0 20px minmax(0, 1fr) 20px 0; }
+  grid-template-columns: 290px 30px minmax(0, 1fr) 30px minmax(560px, 44vw); transition: grid-template-columns .25s; }
+html.esq-fechado .painel-app { grid-template-columns: 0 30px minmax(0, 1fr) 30px minmax(560px, 44vw); }
+html.dir-fechado .painel-app { grid-template-columns: 290px 30px minmax(0, 1fr) 30px 0; }
+html.esq-fechado.dir-fechado .painel-app { grid-template-columns: 0 30px minmax(0, 1fr) 30px 0; }
 html.esq-fechado .lado-esq, html.dir-fechado .lado-dir { visibility: hidden; border: 0; }
 .lado { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
   background: var(--p-sup); border: 1px solid var(--p-borda); border-radius: 12px; box-shadow: var(--p-sombra); }
 .lado-dir { margin-right: 12px; }
 .lado-corpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 18px 12px; }
-.lado-rec { align-self: start; margin-top: 18px; width: 20px; height: 28px; padding: 0; border: 0; background: none;
-  color: #6b7a72; font-size: 13px; cursor: pointer; }
-.lado-rec:hover { color: var(--p-verde); }
+/* 23/11/2026: aba de recolher/abrir bem visível — verde, seta branca, centralizada na altura */
+.lado-rec { align-self: center; justify-self: center; width: 24px; height: 72px; padding: 0; border: 0; border-radius: 8px;
+  background: var(--p-verde); color: #fff; font-size: 17px; line-height: 1; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25); transition: background .15s, transform .15s; }
+.lado-rec:hover { background: #006b2e; transform: scaleX(1.12); }
+.lado-rec:focus-visible { outline: 2px solid var(--p-verde); outline-offset: 2px; }
 .lado-pe { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 14px 14px;
   border-top: 1px solid var(--p-borda); font-size: 11px; color: #6b7a72; letter-spacing: .04em; }
 .lado-pe img { width: 100%; max-width: 250px; height: auto; display: block; }
