@@ -196,7 +196,7 @@ html.modo-painel .mapa .fundo-btn { width: 34px; height: 34px; box-sizing: borde
 html.modo-painel .mapa .fundo-btn svg path { stroke: var(--c-tx); }
 html.modo-painel .mapa .fundo-btn svg path[fill] { fill: var(--c-bg); }
 html.modo-painel .mapa .fundo-btn:hover, html.modo-painel .mapa .fundo-btn[aria-expanded=true] { background: var(--c-hover); border-color: var(--p-verde); }
-html.modo-painel .mapa .fundo-menu { top: 40px; left: 0; border: 1px solid #dfe5e1; border-radius: 10px;
+html.modo-painel .mapa .fundo-menu { top: 40px; left: auto; right: 0; z-index: 1001; border: 1px solid #dfe5e1; border-radius: 10px;
   box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
 html.modo-painel .mapa .escala-barra, html.modo-painel .mapa .leitura-coord { border: 1px solid #dfe5e1; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
