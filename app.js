@@ -778,10 +778,11 @@ function iniciaMapa() {
     const w = melhor.px / melhor.n, num = v => br(v, Number.isInteger(v) ? 0 : (Number.isInteger(v * 10) ? 1 : 2));
     let rot = "", cx = "";
     for (let i = 0; i <= melhor.n; i++)
-      rot += `<span style="left:${i * w}px">${num(i * melhor.seg)}${i === melhor.n ? " Km" : ""}</span>`;
+      // PAINEL (23/11/2026): todo número centralizado na divisão (com tracinho); "Km" fica fora, depois do último
+      rot += `<span style="left:${i * w}px">${num(i * melhor.seg)}${i === melhor.n ? '<em class="eb-un">Km</em>' : ""}</span>`;
     for (let i = 0; i < melhor.n; i++) cx += `<i class="${i % 2 ? "b" : "p"}" style="left:${i * w}px;width:${w}px"></i>`;
     eb._d.innerHTML = `<div class="eb-rot">${rot}</div><div class="eb-cx" style="width:${melhor.px}px">${cx}</div>`;
-    eb._d.style.width = (melhor.px + 34) + "px";
+    eb._d.style.width = melhor.px + "px";       // PAINEL: caixa justa (antes +34 px, somados ao recuo = 61 px sobrando)
   };
   mapa.on("zoomend moveend resize", atualizaEsc);
   const Volta = L.Control.extend({ options: { position: "topleft" },
