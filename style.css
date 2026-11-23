@@ -94,13 +94,15 @@ body { overflow-x: hidden; }
 .leaflet-tooltip.rot-loc::before { display: none; }
 .escala-num { background: #fff; padding: 2px 6px; font-size: 11px; font-weight: bold; border: 1px solid #999; }
 /* barra de escala como a do caderno (18/11/2026): caixa dupla, segmentos alternados, rótulos em cima */
-.escala-barra { background: rgba(255,255,255,.88); border: 1px solid #999; padding: 3px 26px 5px 8px; color: #222; box-sizing: content-box; }
+/* 23/11/2026 (painel): caixa justa (só o espaço do "Km" à direita), números centrados em cada divisão com tracinho,
+   barra de 8 px para o preto e branco alternado ficar legível */
+.escala-barra { background: rgba(255,255,255,.88); border: 1px solid #999; padding: 3px 26px 6px 9px; color: #222; box-sizing: content-box; }
 .escala-barra:empty { display: none; }
-.eb-rot { position: relative; height: 14px; font: 10px Arial, sans-serif; }
+.eb-rot { position: relative; height: 16px; font: 10px/12px Arial, sans-serif; }
 .eb-rot span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
-.eb-rot span:first-child { transform: none; }
-.eb-rot span:last-child { transform: translateX(-4px); }
-.eb-cx { position: relative; height: 6px; border: 1px solid #222; box-sizing: border-box; }
+.eb-rot span::after { content: ""; position: absolute; left: 50%; top: 12px; width: 1px; height: 4px; margin-left: -.5px; background: #222; }
+.eb-rot .eb-un { position: absolute; left: 100%; top: 0; padding-left: 3px; font-style: normal; }
+.eb-cx { position: relative; height: 8px; border: 1px solid #222; box-sizing: border-box; }
 .eb-cx i { position: absolute; top: 0; bottom: 0; }
 .eb-cx i.p { background: linear-gradient(#222 50%, #fff 50%); }
 .eb-cx i.b { background: linear-gradient(#fff 50%, #222 50%); }
