@@ -1,7 +1,8 @@
 /* Aviso de novidades — ATUALIZAR A CADA PUBLICAÇÃO: pôr os itens do dia no topo de HIST (data dd/mm/aaaa).
    20/11/2026: o aviso automático mostra só a atualização mais recente (HIST[0]); o botão #novid-btn (🔔) abre o
-   histórico inteiro, por data. "Entendi"/✕ vale para a DATA de HIST[0]: o aviso só volta a abrir sozinho quando entrar
-   um bloco com data nova (itens a mais no mesmo dia não reabrem). Guardado em localStorage e, de reserva, num cookie.
+   histórico inteiro, por data. "Entendi"/✕ vale para o CONTEÚDO de HIST[0] (data + assinatura dos itens): o aviso abre
+   sozinho UMA vez a cada publicação que mude o bloco do topo — também no mesmo dia (23/11/2026: a 2ª publicação do dia
+   não apareceu para quem já tinha fechado a 1ª) — e não reabre ao recarregar. Guardado em localStorage e num cookie.
    Fica por cima da capa. Some no modo apresentação e na impressão. */
 (() => {
   "use strict";
@@ -33,6 +34,8 @@
   ];
   const CHAVE = "novid:" + (location.pathname.split("/")[1] || "local");     // atlas e painel guardam separado
   const CK = CHAVE.replace(/[^\w-]/g, "_");
+  // assinatura do bloco do topo: muda quando entra/sai/altera item; valor antigo (só a data) também conta como "não visto"
+  const ASS = HIST[0].data + "#" + HIST[0].itens.join("|").split("").reduce((h, ch) => (h * 33 + ch.charCodeAt(0)) >>> 0, 5381).toString(36);
   function visto() {                     // data da última atualização já fechada neste navegador
     const dt = v => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v); return m ? `${m[3]}/${m[2]}/${m[1]}` : v; };  // id antigo "2026-11-20b"
     try { const v = localStorage.getItem(CHAVE); if (v) return dt(v); } catch (e) {}
@@ -83,11 +86,11 @@ html.apres .novid, html.apres-img .novid { display: none !important; }
   const apres = () => /apres/.test(document.documentElement.className);
   function mostra(forcar) {
     if (apres()) return;
-    if (!forcar && visto() === HIST[0].data) return;
+    if (!forcar && visto() === ASS) return;
     monta(!!forcar); c.hidden = false;
   }
   function fecha() {
-    c.hidden = true; const v = HIST[0].data;
+    c.hidden = true; const v = ASS;
     try { localStorage.setItem(CHAVE, v); } catch (e) {}
     try { document.cookie = CK + "=" + encodeURIComponent(v) + "; max-age=31536000; path=/; SameSite=Lax"; } catch (e) {}
   }
