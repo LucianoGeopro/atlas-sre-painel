@@ -665,6 +665,17 @@ function iniciaMapa() {
   // SRE, obras e projetos são desenhados (overlayPane, 400)
   mapa.createPane("realce").style.zIndex = 395;
   mapa.getPane("realce").style.pointerEvents = "none";
+  // 23/11/2026: seleção do quadro — véu (foco), etiquetas (cota, sem clique) e caixa do resumo por cima dos rótulos (arrastável)
+  mapa.createPane("foco").style.zIndex = 430;            // véu do holofote: acima das linhas, abaixo das placas
+  mapa.getPane("foco").style.pointerEvents = "none";
+  mapa.createPane("cota").style.zIndex = 615;
+  mapa.getPane("cota").style.pointerEvents = "none";
+  mapa.createPane("cotaCx").style.zIndex = 650;
+  mapa.on("zoomend resize", desenhaCota);              // resize: o painel muda o tamanho do mapa (abas, janela)
+  // registrado antes de qualquer popup: roda antes do preclick que fecha o popup
+  mapa.on("preclick", () => { POP_ANTES = !!mapa.getContainer().querySelector(".leaflet-popup"); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && COTA && !APRES && !COORD &&
+    !$("#mapa").classList.contains("mapa-cheio")) limpaDestaque(); });
   mapa.createPane("vias").style.zIndex = 420;
   mapa.createPane("projetos").style.zIndex = 425;   // obra tem mais peso: projetos ficam por baixo das obras
   mapa.createPane("obras").style.zIndex = 430;
@@ -698,7 +709,11 @@ function iniciaMapa() {
   const topo = f => { const t = etapaTraco(f.properties.etapa);
     return t === "obra" ? { opacity: 0, weight: 0 } : { color: "#ffffff", opacity: 1, lineCap: "butt",
       weight: t === "projeto" ? 3 : 4.5, dashArray: t === "projeto" ? null : "6 3" }; };
-  const dica = (nat, p) => `<b>${nat} – ${esc(p.intervencao)} - ${esc(p.etapa || "Obra")}</b><br>${esc(p.rodovia || "")} · ${esc(p.codigo || "")}`;
+  // 23/11/2026: dica ao passar o mouse no mesmo modelo da caixa de seleção — "Intervenção - Obra/Projeto" (natureza uma
+  // vez só), "Etapa: …" com o nome do campo (fase do processo), rodovia · código
+  const dica = (nat, p) => `<b>${esc(p.intervencao)} - ${nat}</b>${p.etapa ? `<br>Etapa: ${esc(p.etapa)}` : ""}` +
+    `<br>${esc(p.rodovia || "")} · ${esc(p.codigo || "")}`;
+  const dicaPlaca = (p, projeto) => dica(projeto ? "Projeto" : "Obra", p);
   const dorCasco = L.geoJSON(null, { renderer: rnd, pane: "obras", style: base,
       onEachFeature: (f, l) => { l.bindTooltip(dica("Obra", f.properties), { sticky: true }); balaoMapa(l, () => htmlObra(f.properties, false)); } });
   const dorCor = L.geoJSON(null, { renderer: rnd, pane: "obras", interactive: false, style: topo });
@@ -706,8 +721,8 @@ function iniciaMapa() {
   const placa = (f, projeto) => L.icon({ iconUrl: PLACA[catPlaca(f.properties, projeto)][0], iconSize: [22, 22], iconAnchor: [11, 11] });
   camadas.dorP = L.geoJSON(null, { pane: "projP",
     pointToLayer: (f, ll) => L.marker(ll, { pane: "projP", icon: placa(f, false) }),
-    onEachFeature: (f, l) => { l.bindTooltip(`<b>Obra pontual – ${esc(catPlaca(f.properties, false))}</b><br>${esc(f.properties.intervencao)} · ${esc(f.properties.rodovia || "")} · ${esc(f.properties.codigo || "")}`);
-      balaoMapa(l, () => htmlObra(f.properties, false)); } });
+    onEachFeature: (f, l) => { l.bindTooltip(dicaPlaca(f.properties, false));
+      balaoMapa(l, () => htmlObra(f.properties, false)); l.on("click", e => clicaPlaca(e, f, false)); } });
   const pjBase = L.geoJSON(null, { renderer: rnd, pane: "projetos", style: base,
       onEachFeature: (f, l) => { l.bindTooltip(dica("Projeto", f.properties), { sticky: true }); balaoMapa(l, () => htmlObra(f.properties, true)); } });
   const pjTopo = L.geoJSON(null, { renderer: rnd, pane: "projetos", interactive: false, style: topo });
@@ -715,8 +730,8 @@ function iniciaMapa() {
   camadas.projL = L.layerGroup([pjBase, pjTopo]);
   camadas.projP = L.geoJSON(null, { pane: "projP",
     pointToLayer: (f, ll) => L.marker(ll, { pane: "projP", icon: placa(f, true) }),
-    onEachFeature: (f, l) => { l.bindTooltip(`<b>Projeto pontual – ${esc(catPlaca(f.properties, true))}</b><br>${esc(f.properties.intervencao)} · ${esc(f.properties.rodovia || "")} · ${esc(f.properties.codigo || "")}`);
-      balaoMapa(l, () => htmlObra(f.properties, true)); } });
+    onEachFeature: (f, l) => { l.bindTooltip(dicaPlaca(f.properties, true));
+      balaoMapa(l, () => htmlObra(f.properties, true)); l.on("click", e => clicaPlaca(e, f, true)); } });
   camadas.loc = L.geoJSON(null, {
     pointToLayer: (f, ll) => L.circleMarker(ll, { renderer: rnd, radius: /Sede|Capital/.test(f.properties.t) ? 4 : 2.5, color: "#222",
       weight: 1, fillColor: "#fff", fillOpacity: 1 }),
@@ -737,7 +752,18 @@ function iniciaMapa() {
     if (APRES && !IMG) { const h = elementoEm(e) || (f && htmlMun(f.properties.cod)); if (h) abreBalao(e.originalEvent, h); return; }
     const oe = e.originalEvent || {};
     // 18/11/2026: em cima de trecho do SRE, obra ou projeto abre o popup (Ctrl/Shift + clique continua somando município)
-    if (!APRES && !(oe.ctrlKey || oe.shiftKey || oe.metaKey)) { const d = popupEm(e); if (d) { abrePop(e.latlng, d); return; } }
+    // 23/11/2026: obra ou projeto = destaque igual ao do quadro (véu, sombra, início/fim e caixa); SRE segue com o popup.
+    // Com algo selecionado (destaque ou popup aberto): clique em OUTRA obra/projeto seleciona direto; clique no próprio
+    // item destacado não faz nada; clique em qualquer outro lugar só desfaz a seleção (o seguinte volta ao normal)
+    if (!APRES) {
+      const mod = oe.ctrlKey || oe.shiftKey || oe.metaKey;
+      if (COTA && pertoDoDestaque(e.containerPoint)) return;
+      const ob = mod ? null : maisPerto(e, [[camadas.projP, p => [p, true, true], 13], [camadas.dorP, p => [p, false, true], 11],
+        [camadas.dorL, p => [p, false, false], 8], [camadas.projL, p => [p, true, false], 8]]);
+      if (ob) { POP_ANTES = false; mapa.closePopup(); destacaObraMapa(...ob, e.latlng); return; }
+      if (COTA || POP_ANTES) { POP_ANTES = false; limpaDestaque(); return; }
+      if (!mod) { const d = popupEm(e); if (d) { abrePop(e.latlng, d); return; } }
+    }
     if (!f) return;
     const c = f.properties.cod;
     if (COMB || oe.ctrlKey || oe.shiftKey || oe.metaKey) alterna(c);
@@ -1121,39 +1147,293 @@ const AreaSel = L.Layer.extend({
     x.globalCompositeOperation = "source-over"; c.style.visibility = "";
   }
 });
-// clique numa linha dos quadros (SRE e, desde 19/11/2026, obras e projetos): realça no mapa e dá zoom na parte que fica
-// dentro do(s) município(s) selecionado(s) (o trecho do SRE e o projeto vêm inteiros no dado; a obra já vem por município)
-function destacaFeicoes(fs) {
+// clique numa linha dos quadros (SRE, obras e projetos) — 23/11/2026, 2ª versão. Regra do usuário: SEM COR no destaque
+// (o magenta "engolia" a simbologia) — só SOMBRA: o item fica intacto, com uma sombra projetada por baixo (parece levantado
+// do mapa), e o resto do mapa fica na sombra (véu escuro com um corredor aberto em volta do item); início e fim com
+// etiquetas neutras (Km no SRE); caixa do resumo neutra, no estilo dos cartões do painel. Duas vistas: só a parte no recorte (município / municípios /
+// lote) ou o item inteiro, ignorando municípios e lotes (a obra vem cortada por município: junta os pedaços do mesmo código)
+let COTA = null, VISTA = "recorte";                        // a vista escolhida vale para os próximos cliques até recarregar
+let POP_ANTES = false;                                     // havia popup aberto antes do clique (o Leaflet fecha no preclick)
+// o clique (px na tela) caiu em cima da parte DESTACADA do item (a da vista atual)? Mesmo com outra camada por cima.
+// A parte apagada (outro município, na vista "No município") não conta: clicar nela age como em outra intervenção
+function pertoDoDestaque(p, tol = 10) {
+  const px = ll => mapa.latLngToContainerPoint(ll);
+  if (COTA.pts.some(ll => px(ll).distanceTo(p) <= tol + 4)) return true;
+  return runsVista().some(rr => { const q = rr.pts.map(px);
+    for (let i = 1; i < q.length; i++) if (L.LineUtil.pointToSegmentDistance(p, q[i - 1], q[i]) <= tol) return true; return false; });
+}
+function limpaDestaque() {
   if (camadas.sel) { mapa.removeLayer(camadas.sel); camadas.sel = null; }
+  if (camadas.cota) { mapa.removeLayer(camadas.cota); camadas.cota = null; }
+  COTA = null;
+  document.querySelectorAll("#t-sre tr.sel, #t-obras tr.sel").forEach(x => x.classList.remove("sel"));
+}
+const linhasDe = g => g.type === "LineString" ? [g.coordinates] : g.type === "MultiLineString" ? g.coordinates : [];
+// junta pedaços que se tocam pela ponta (obra/projeto vêm em várias partes); pts = [lon, lat]
+// tol: pedaços cortados na divisa por município não coincidem exatamente na ponta — no item inteiro emenda até ~250 m
+function juntaPartes(runs, tol = 1e-5) {
+  const igual = (a, b) => Math.abs(a[0] - b[0]) < tol && Math.abs(a[1] - b[1]) < tol;
+  for (let mudou = true; mudou;) { mudou = false;
+    for (let i = 0; i < runs.length && !mudou; i++) for (let j = 0; j < runs.length && !mudou; j++) { if (i === j) continue;
+      const a = runs[i], b = runs[j], af = a.pts[a.pts.length - 1];
+      let bp = null, bFim;
+      if (igual(af, b.pts[0])) { bp = b.pts; bFim = b.fimB; }
+      else if (igual(af, b.pts[b.pts.length - 1])) { bp = b.pts.slice().reverse(); bFim = b.iniB; }
+      if (!bp) continue;
+      a.pts = a.pts.concat(bp.slice(1)); a.fimB = bFim; runs.splice(j, 1); mudou = true; } }
+  return runs.map(r => ({ pts: r.pts.map(p => [p[1], p[0]]), iniB: !!r.iniB, fimB: !!r.fimB }));
+}
+// partes contínuas DENTRO do recorte (municípios selecionados); a divisa é achada por bisseção (fica exata)
+function partesDentro(fs) {
+  const gb = GEO.municipios.features.filter(f => SEL.includes(f.properties.cod)).map(f => [f.geometry, f._bb || (f._bb = caixa(f.geometry))]);
+  const den = p => gb.some(([g, b]) => p[0] >= b[0] && p[0] <= b[2] && p[1] >= b[1] && p[1] <= b[3] && dentro(p, g));
+  const borda = (a, b) => { let lo = a, hi = b;            // a dentro, b fora
+    for (let k = 0; k < 16; k++) { const m = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2]; if (den(m)) lo = m; else hi = m; } return lo; };
+  const runs = [];
+  fs.forEach(f => linhasDe(f.geometry).forEach(c => {
+    const q = [];                                          // pontos a cada ~200 m (trecho reto com um só vértice dentro)
+    c.forEach((p, i) => { q.push(p); const r = c[i + 1]; if (!r) return;
+      const n = Math.min(200, Math.floor(Math.hypot(r[0] - p[0], r[1] - p[1]) / 0.002));
+      for (let k = 1; k < n; k++) q.push([p[0] + (r[0] - p[0]) * k / n, p[1] + (r[1] - p[1]) * k / n]); });
+    let run = null, ant = null;
+    q.forEach(p => { const d = den(p);
+      if (d && !run) { run = { pts: [], iniB: !!ant }; if (ant) run.pts.push(borda(p, ant)); }
+      if (d) run.pts.push(p);
+      if (!d && run) { run.pts.push(borda(ant, p)); run.fimB = true; runs.push(run); run = null; }
+      ant = p; });
+    if (run) { run.fimB = false; runs.push(run); }
+  }));
+  return juntaPartes(runs.filter(r => r.pts.length > 1));
+}
+const pxLinha = (lls, z) => { const ps = [];
+  lls.forEach((ll, i) => { const p = mapa.project(ll, z), u = ps[ps.length - 1];
+    if (!u || Math.hypot(p.x - u.x, p.y - u.y) >= 3 || i === lls.length - 1) ps.push(p); });
+  if (ps.length > 2 && ps[ps.length - 1].distanceTo(ps[ps.length - 2]) < 1) ps.splice(-2, 1);
+  return ps; };
+const compPx = ps => ps.reduce((s, p, i) => i ? s + p.distanceTo(ps[i - 1]) : 0, 0);
+const temDuasVistas = () => COTA && COTA.dentro.length && COTA.dentro.some(r => r.iniB || r.fimB);
+const vistaInteira = () => VISTA === "inteiro" || !COTA.dentro.length;
+const runsVista = () => vistaInteira() ? COTA.inteiras : COTA.dentro;
+// holofote: véu escuro sobre o mapa (acima das linhas, abaixo das placas e rótulos) com um corredor aberto no item
+const FOCO_R = 17;                                         // meia largura do corredor (px)
+const Foco = L.Layer.extend({
+  onAdd(m) { this._c = L.DomUtil.create("canvas", "foco-veu"); m.getPane("foco").appendChild(this._c);
+    this._s = L.DomUtil.create("canvas", "foco-veu"); m.getPane("realce").appendChild(this._s);   // sombra (abaixo das linhas)
+    m.on("move zoomend resize viewreset", this._desenha, this); m.on("zoomstart", this._esconde, this); this._desenha();
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (this._c) { this._c.classList.add("on"); this._s.classList.add("on"); } })); },
+  onRemove(m) { m.off("move zoomend resize viewreset", this._desenha, this); m.off("zoomstart", this._esconde, this);
+    this._c.remove(); this._s.remove(); this._c = this._s = null; },
+  _esconde() { if (this._c) { this._c.style.visibility = "hidden"; this._s.style.visibility = "hidden"; } },
+  _desenha() { const m = this._map, c = this._c; if (!c || !COTA) return;
+    const ct = m.getContainer(), s = L.point(ct.clientWidth, ct.clientHeight), r = window.devicePixelRatio || 1;
+    c.style.visibility = ""; c.width = s.x * r; c.height = s.y * r; c.style.width = s.x + "px"; c.style.height = s.y + "px";
+    L.DomUtil.setPosition(c, m.containerPointToLayerPoint([0, 0]));
+    const x = c.getContext("2d"); x.setTransform(r, 0, 0, r, 0, 0);
+    x.fillStyle = "rgba(10, 16, 20, .55)"; x.fillRect(0, 0, s.x, s.y);
+    x.globalCompositeOperation = "destination-out"; x.lineCap = "round"; x.lineJoin = "round";
+    const cam = () => { x.beginPath(); runsVista().forEach(rr => rr.pts.forEach((ll, i) => { const p = m.latLngToContainerPoint(ll);
+      if (i) x.lineTo(p.x, p.y); else x.moveTo(p.x, p.y); })); };
+    cam(); x.strokeStyle = "rgba(0,0,0,.5)"; x.lineWidth = FOCO_R * 2 + 16; x.stroke();          // borda suave
+    cam(); x.strokeStyle = "#000"; x.lineWidth = FOCO_R * 2; x.stroke();
+    COTA.pts.forEach(ll => { const p = m.latLngToContainerPoint(ll);
+      x.beginPath(); x.arc(p.x, p.y, 30, 0, 7); x.fillStyle = "rgba(0,0,0,.5)"; x.fill();
+      x.beginPath(); x.arc(p.x, p.y, 22, 0, 7); x.fillStyle = "#000"; x.fill(); });
+    x.globalCompositeOperation = "source-over";
+    // sombra projetada do item: desenhado fora da tela, só a sombra cai no lugar (deslocada 3 px →, 5 px ↓)
+    const t = this._s; t.style.visibility = ""; t.width = s.x * r; t.height = s.y * r; t.style.width = s.x + "px"; t.style.height = s.y + "px";
+    L.DomUtil.setPosition(t, m.containerPointToLayerPoint([0, 0]));
+    const y = t.getContext("2d"); y.setTransform(r, 0, 0, r, 0, 0); y.translate(-30000, 0);
+    y.shadowColor = "rgba(0, 0, 0, .9)"; y.shadowBlur = 9 * r; y.shadowOffsetX = (30000 + 3) * r; y.shadowOffsetY = 5 * r;
+    y.lineCap = "round"; y.lineJoin = "round"; y.strokeStyle = "#000"; y.fillStyle = "#000";
+    y.beginPath(); runsVista().forEach(rr => rr.pts.forEach((ll, i) => { const p = m.latLngToContainerPoint(ll);
+      if (i) y.lineTo(p.x, p.y); else y.moveTo(p.x, p.y); }));
+    y.lineWidth = 9; y.stroke();
+    COTA.pts.forEach(ll => { const p = m.latLngToContainerPoint(ll); y.beginPath(); y.arc(p.x, p.y, 11, 0, 7); y.fill(); }); }
+});
+// etiquetas (início, fim, divisa) e caixa do resumo; redesenhadas a cada zoom
+function desenhaCota() {
+  if (camadas.cota) { mapa.removeLayer(camadas.cota); camadas.cota = null; }
+  if (!COTA) return;
+  const z = mapa.getZoom(), LL = p => mapa.unproject(p, z), g = L.featureGroup(), inteiro = vistaInteira(), inf = COTA.info;
+  // pixel do mundo → ponto da tela: p − ori (pela área real; o Leaflet pode guardar o tamanho antigo do mapa)
+  const anc = [], obst = [], ori = mapa.project(mapa.containerPointToLatLng(L.point(0, 0)), z);
+  const amostra = ps => ps.forEach((p, i) => { obst.push(p.subtract(ori)); const q = ps[i + 1]; if (!q) return;
+    const n = Math.floor(p.distanceTo(q) / 8); for (let k = 1; k < n; k++) obst.push(L.point(p.x + (q.x - p.x) * k / n, p.y + (q.y - p.y) * k / n).subtract(ori)); });
+  // etiqueta presa num ponto do item; dir = para onde ela abre (fora da linha)
+  const Wc = mapa.getContainer().clientWidth;
+  const etiqueta = (p, txt, dir, cls = "") => {
+    let lado = dir.x >= 0 ? "dir" : "esq"; const cx0 = p.x - ori.x, larg = 16 + txt.length * 6.5;
+    if (lado === "esq" && cx0 - larg < 4) lado = "dir"; else if (lado === "dir" && cx0 + larg > Wc - 4) lado = "esq";   // não sai do mapa
+    g.addLayer(L.marker(LL(p), { pane: "cota", interactive: false, keyboard: false,
+      icon: L.divIcon({ className: "cota-ic", iconSize: [0, 0], html: `<span class="foco-pino ${cls}"></span><span class="foco-tag ${lado} ${cls}">${txt}</span>` }) }));
+    for (let k = 0; k <= 110; k += 10) obst.push(L.point(p.x + (lado === "dir" ? 1 : -1) * (14 + k), p.y).subtract(ori)); };
+  const unit = (a, b) => { const l = a.distanceTo(b) || 1; return L.point((b.x - a.x) / l, (b.y - a.y) / l); };
+  const naFracao = (ps, comp, f) => { let acc = 0;
+    for (let i = 1; i < ps.length; i++) { const l = ps[i].distanceTo(ps[i - 1]);
+      if (acc + l >= comp * f || i === ps.length - 1) { const t = l ? Math.min(1, (comp * f - acc) / l) : 0, a = ps[i - 1], b = ps[i];
+        return { p: L.point(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t), n: L.point(-(b.y - a.y) / (l || 1), (b.x - a.x) / (l || 1)) }; }
+      acc += l; } return { p: ps[0], n: L.point(0.7, -0.7) }; };
+  const km = v => v !== undefined && v !== null && v !== "" ? ` · Km ${num(v, 2)}` : "";
+  const pontas = [], livres = [];                         // pontas com etiqueta; pontas que não são corte na divisa
+  runsVista().forEach((r, ir) => {
+    const ps = pxLinha(r.pts, z); if (ps.length < 2) return;
+    const comp = compPx(ps);
+    amostra(ps); pontas.push(ps[0], ps[ps.length - 1]);
+    // corte na divisa do recorte: sempre marcado; início/fim de verdade: decididos depois (só as 2 pontas extremas)
+    const d0 = unit(ps[Math.min(1, ps.length - 1)], ps[0]), d1 = unit(ps[ps.length - 2], ps[ps.length - 1]);
+    if (r.iniB) etiqueta(ps[0], "Divisa · continua", d0, "div"); else livres.push({ p: ps[0], d: d0, ini: true, ir });
+    if (r.fimB) etiqueta(ps[ps.length - 1], "Divisa · continua", d1, "div"); else livres.push({ p: ps[ps.length - 1], d: d1, ini: false, ir });
+    [0.5, 0.35, 0.65, 0.2, 0.8].forEach((f, k) => { const m = naFracao(ps, comp, f);
+      [1, -1].forEach(s => anc.push({ p: m.p.add(m.n.multiplyBy(FOCO_R * s)), n: m.n.multiplyBy(s), comp, f: k })); });
+  });
+  // início e fim: as duas pontas livres mais distantes entre si (obra com ramal ou em pedaços não ganha "Fim/Início" no meio)
+  let par = livres.length >= 2 ? [livres[0], livres[1]] : livres.slice();
+  livres.forEach((a, i) => livres.forEach((b, j) => { if (j > i && a.p.distanceTo(b.p) > par[0].p.distanceTo(par[1].p)) par = [a, b]; }));
+  if (par.length === 2) {
+    if (!par[0].ini && par[1].ini || par[0].ini === par[1].ini && par[0].ir > par[1].ir) par.reverse();
+    etiqueta(par[0].p, "Início" + km(inf.ki), par[0].d); etiqueta(par[1].p, "Fim" + km(inf.kf), par[1].d);
+  } else if (par.length === 1) etiqueta(par[0].p, (par[0].ini ? "Início" + km(inf.ki) : "Fim" + km(inf.kf)), par[0].d);
+  // vista inteira: marca onde o item cruza o limite do recorte
+  if (inteiro) COTA.div.forEach(ll => { const p = mapa.project(ll, z);
+    if (!pontas.some(q => q.distanceTo(p) < 40)) etiqueta(p, "Divisa", L.point(1, 0), "div"); });
+  COTA.pts.forEach(ll => { const p = mapa.project(ll, z); obst.push(p.subtract(ori));
+    [[0.7, -0.7], [0.7, 0.7], [-0.7, -0.7], [-0.7, 0.7]].forEach(([x, y], k) => anc.push({ p: p.add(L.point(x * 24, y * 24)), n: L.point(x, y), comp: 0, f: k })); });
+  if (!anc.length) { camadas.cota = g.addTo(mapa); return; }
+  const vis = temDuasVistas() ? `<div class="cota-vis">` +
+    [["recorte", COTA.rotRec], ["inteiro", COTA.rotInt]].map(([v, t]) =>
+      `<button type="button" class="cota-v${(v === "inteiro") === inteiro ? " on" : ""}" data-v="${v}">${t}</button>`).join("") + `</div>` : "";
+  const miolo = `<button class="cota-x" type="button" title="Limpar seleção (Esc)" aria-label="Limpar seleção">✕</button>` +
+    `<b>${inf.tit}</b>${vis}${((inteiro && (temDuasVistas() || !COTA.dentro.length) ? inf.lsInt : inf.lsRec) || inf.ls || []).filter(Boolean).map(t => /^<div/.test(t) ? t : `<div>${t}</div>`).join("")}` +
+    `${inf.sub ? `<div class="cx-s">${inf.sub}</div>` : ""}`;
+  // caixa: marcador no canto superior esquerdo; a linha de chamada vai da borda do corredor ao ponto mais perto da caixa
+  const med = document.createElement("div"); med.className = "cota-cx"; med.style.visibility = "hidden"; med.innerHTML = miolo;
+  const ct = mapa.getContainer(); ct.appendChild(med); const bw = med.offsetWidth, bh = med.offsetHeight; med.remove();
+  const perto = (q, x0, y0) => L.point(Math.max(x0, Math.min(x0 + bw, q.x)), Math.max(y0, Math.min(y0 + bh, q.y)));
+  let ini, cantoLL = COTA.caixa;                           // posição arrastada pelo usuário
+  if (cantoLL && COTA.iniLL) ini = mapa.project(COTA.iniLL, z);
+  else {
+    // áreas proibidas (botões, escala, norte) e tamanho do mapa
+    const W = L.point(ct.clientWidth, ct.clientHeight), rc = ct.getBoundingClientRect(), escT = rc.width / (ct.offsetWidth || 1);
+    const ctl = [...ct.querySelectorAll(".leaflet-control, .btn-mapa")].map(e => e.getBoundingClientRect()).filter(b => b.width)
+      .map(b => [(b.left - rc.left) / escT, (b.top - rc.top) / escT, (b.right - rc.left) / escT, (b.bottom - rc.top) / escT]);
+    let melhor = null; const maior = Math.max(...anc.map(a => a.comp));
+    const avalia = (a, x0, y0, extra) => {               // x0, y0 = canto da caixa na tela
+      const x1 = x0 + bw, y1 = y0 + bh; let pen = extra;
+      obst.forEach(o => { if (o.x > x0 - 10 && o.x < x1 + 10 && o.y > y0 - 10 && o.y < y1 + 10) pen += 10; });
+      pen += (Math.max(0, 8 - x0) + Math.max(0, x1 - W.x + 8) + Math.max(0, 8 - y0) + Math.max(0, y1 - W.y + 8)) * 60;
+      ctl.forEach(([a0, b0, a1, b1]) => { const ix = Math.min(x1 + 6, a1) - Math.max(x0 - 6, a0), iy = Math.min(y1 + 6, b1) - Math.max(y0 - 6, b0);
+        if (ix > 0 && iy > 0) pen += ix * iy; });
+      const ap = a.p.subtract(ori), le = perto(ap, x0, y0);
+      pen += le.distanceTo(ap) * 0.15 + a.f * 3 + (a.comp < maior ? 15 : 0);
+      if (!melhor || pen < melhor.pen) melhor = { pen, ini: a.p, x0, y0 }; };
+    // perto do item, para o lado de fora
+    anc.forEach(a => [0, 40, -40, 75, -75].forEach((ang, ka) => { const t = ang * Math.PI / 180;
+      const d = L.point(a.n.x * Math.cos(t) - a.n.y * Math.sin(t), a.n.x * Math.sin(t) + a.n.y * Math.cos(t));
+      [30, 65, 110, 170].forEach(len => { const c = a.p.add(d.multiplyBy(len)).subtract(ori);
+        const ox = d.x >= 0 ? 0 : -1, oy = Math.abs(d.y) < 0.5 ? -0.5 : d.y >= 0 ? 0 : -1;
+        avalia(a, c.x + ox * bw, c.y + oy * bh, ka * 2); }); }));
+    // ou encaixada num canto livre do mapa (mapa estreito), ligada pela linha
+    const xs = [10, W.x - bw - 10], ys = [62, W.y - bh - 90];
+    anc.forEach(a => xs.forEach(x0 => ys.forEach(y0 => avalia(a, x0, y0, 25))));
+    ini = melhor.ini; cantoLL = LL(L.point(melhor.x0, melhor.y0).add(ori)); COTA.iniLL = LL(ini);
+  }
+  const fimDe = ll => { const c = mapa.project(ll, z); return LL(perto(ini, c.x, c.y)); };
+  // linha de chamada neutra (branca com contorno escuro) e bolinha na borda do corredor
+  const chamada = L.polyline([LL(ini), fimDe(cantoLL)], { pane: "cota", interactive: false, color: "#fff", weight: 1.5, opacity: 0.95 });
+  const casca = L.polyline([LL(ini), fimDe(cantoLL)], { pane: "cota", interactive: false, color: "#1d2b24", weight: 3.5, opacity: 0.6 });
+  g.addLayer(casca); g.addLayer(chamada);
+  g.addLayer(L.circleMarker(LL(ini), { pane: "cota", interactive: false, radius: 3.5, color: "#1d2b24", weight: 1.5, fillColor: "#fff", fillOpacity: 1 }));
+  const cx = L.marker(cantoLL, { pane: "cotaCx", draggable: true, keyboard: false, autoPan: false,
+    icon: L.divIcon({ className: "cota-ic", iconSize: [0, 0],
+      html: `<div class="cota-cx" title="Arraste para mover">${miolo}</div>` }) });
+  cx.on("drag", e => { const f = fimDe(e.target.getLatLng()); chamada.setLatLngs([LL(ini), f]); casca.setLatLngs([LL(ini), f]); });
+  cx.on("dragend", e => { COTA.caixa = e.target.getLatLng(); });
+  cx.on("add", () => { const el = cx.getElement(); if (!el) return;
+    L.DomEvent.disableClickPropagation(el); L.DomEvent.disableScrollPropagation(el);
+    el.querySelectorAll("button").forEach(b => L.DomEvent.on(b, "mousedown touchstart pointerdown", L.DomEvent.stopPropagation));
+    const x = el.querySelector(".cota-x");
+    if (x) L.DomEvent.on(x, "click", ev => { L.DomEvent.stop(ev); limpaDestaque(); });
+    el.querySelectorAll(".cota-v").forEach(b => L.DomEvent.on(b, "click", ev => { L.DomEvent.stop(ev);
+      if (VISTA !== b.dataset.v) { VISTA = b.dataset.v; aplicaVista(); } })); });
+  g.addLayer(cx);
+  camadas.cota = g.addTo(mapa);
+}
+// zoom, holofote e etiquetas da vista atual (recorte ou inteiro)
+function aplicaVista() {
+  if (!COTA) return;
+  COTA.caixa = null; COTA.iniLL = null;
+  const lls = runsVista().flatMap(r => r.pts).concat(COTA.pts);
+  if (!lls.length) return;
+  const alvo = L.latLngBounds(lls);
+  if (camadas.sel) camadas.sel._desenha();
+  mapa.once("moveend", desenhaCota);                       // redesenha com a vista final (posição da caixa)
+  const ct = mapa.getContainer(), px = Math.round(Math.min(130, ct.clientWidth * 0.1)), py = Math.round(Math.min(90, ct.clientHeight * 0.1));
+  mapa.fitBounds(alvo, { paddingTopLeft: [px, py], paddingBottomRight: [px, py], maxZoom: 15 });     // folga proporcional ao mapa
+  desenhaCota();
+}
+// resumo da caixa (regras de texto do site: Km com 2 casas, % com 1, "Projeto" sempre marcado)
+const nomeRod = v => /^\d/.test(String(v ?? "")) ? "GO-" + v : String(v ?? "");
+// extensão do item em cada município (mesmos números dos quadros/caderno): [{ cod, nome, km }], maior primeiro
+function extPorMun(campo, valor, kmCampo) {
+  const out = [];
+  Object.entries(A.municipios).forEach(([cod, m]) => (campo === "sre" ? m.trechos : m.obras || []).forEach(r => {
+    if (r[campo] === valor && +r[kmCampo] > 0) out.push({ cod, nome: m.nome, km: +r[kmCampo] }); }));
+  return out.sort((a, b) => b.km - a.km);
+}
+// 23/11/2026: o número em destaque muda com a vista — "No município" = extensão dentro do recorte (município, municípios
+// ou lote); "Inteiro" = extensão total da intervenção, com os municípios por onde passa.
+// Regra do usuário (23/11/2026): a extensão total informada é SEMPRE a declarada na obra/projeto (Km contratado), mesmo
+// que o SRE meça outra; item todo dentro do recorte = só "Extensão" (sem repetir "de X no total (100%)" nem contrato).
+function blocoExt(pm, total, rotTot) {
+  const rec = pm.filter(x => SEL.includes(x.cod)).reduce((s, x) => s + x.km, 0);
+  const caixa = (t, v) => `<div class="cx-km"><span>${t}</span><strong>${km2(v)}</strong></div>`;
+  if (pm.every(x => SEL.includes(x.cod))) { const so = [caixa("Extensão", total)]; return { lsRec: so, lsInt: so }; }
+  const rot = LOTE_SEL ? "no lote" : SEL.length > 1 ? "nos municípios" : "no município";
+  const lista = pm.slice(0, 5).map(x => esc(x.nome)).join(" · ") + (pm.length > 5 ? ` · e mais ${pm.length - 5}` : "");
+  return {
+    lsRec: [caixa(`Extensão ${rot}`, rec), `${rotTot}: ${km2(total)}`],
+    lsInt: [caixa("Extensão total", total), pm.length > 1 ? `Passa por: ${lista}` : ""] };
+}
+const resumoSRE = l => { const pm = extPorMun("sre", l.sre, "ext_mun"), b = blocoExt(pm, +l.ext || pm.reduce((s, x) => s + x.km, 0), "Extensão do trecho");
+  const com = [[(SIT[l.situacao] || [l.situacao])[0], l.classe].filter(Boolean).map(esc).join(" · ") + (l.perim_urb === "s" ? " · perímetro urbano" : ""),
+    `Km ${num(l.km_ini, 2)} – ${num(l.km_fim, 2)}`];
+  return { tit: `${esc(l.sre)} · ${esc(nomeRod(l.go))}`, int: "Trecho inteiro", ki: l.km_ini, kf: l.km_fim,
+    lsRec: [...b.lsRec, ...com], lsInt: [...b.lsInt, ...com], sub: l.inicio || l.fim ? `${esc(l.inicio)} → ${esc(l.fim)}` : "" }; };
+// obra/projeto — modelo do usuário (23/11/2026), cada campo com o nome da coluna do quadro:
+//   GO-219 / Pavimentação - Obra / EXTENSÃO DA OBRA: 17,20 Km / Etapa: Obra / Situação: Em andamento / Código: OB26-01460
+//   pontual: GO-060 / Viaduto - Obra / Etapa: Licitação / Situação: Publicado / Código: OB26-01482
+// (intervencao - natureza; etapa = fase do processo; situacao = situação dentro da etapa; extensão = a declarada)
+const resumoObra = l => { const pj = l.natureza === "Projeto", qual = pj ? "do projeto" : "da obra";
+  const tipo = [l.intervencao, pj ? "Projeto" : "Obra"].filter(Boolean).map(esc).join(" - ");
+  const et = l.etapa ? `Etapa: ${esc(l.etapa)}` : "", sit = l.situacao ? `Situação: ${esc(l.situacao)}` : "";
+  const base = { tit: esc(l.rodovia), int: pj ? "Projeto inteiro" : "Obra inteira", sub: `Código: ${esc(l.codigo)}` };
+  const caixa = (t, v) => `<div class="cx-km"><span>${t}:</span><strong>${km2(v)}</strong></div>`;
+  if (l.tipo === "Pontual") { const ls = [tipo, et, sit]; return { ...base, lsRec: ls, lsInt: ls }; }
+  const pm = extPorMun("codigo", l.codigo, "km_mun"), tot = +l.km_contrato || pm.reduce((s, x) => s + x.km, 0);   // declarada
+  const rec = pm.filter(x => SEL.includes(x.cod)).reduce((s, x) => s + x.km, 0);
+  const rot = LOTE_SEL ? "no lote" : SEL.length > 1 ? "nos municípios" : "no município";
+  const lsInt = [tipo, caixa(`Extensão ${qual}`, tot), et, sit];
+  if (pm.every(x => SEL.includes(x.cod))) return { ...base, lsRec: lsInt, lsInt };
+  return { ...base, lsRec: [tipo, caixa(`Extensão ${qual} ${rot}`, rec), `de ${km2(tot)} no total`, et, sit], lsInt }; };
+function destacaFeicoes(fs, info) {
+  limpaDestaque();
   if (!fs.length) return;
-  // destaque por baixo da linha (a cor da legenda continua visível por cima): sombra escura larga e suave +
-  // auréola clara; nos pontos, a mesma auréola atrás da placa
-  const fc = { type: "FeatureCollection", features: fs };
-  const camada = (cor, peso, op, raio) => L.geoJSON(fc, { pane: "realce", interactive: false,
-    style: { color: cor, weight: peso, opacity: op, lineCap: "round", lineJoin: "round" },
-    pointToLayer: (f, ll) => L.circleMarker(ll, { pane: "realce", radius: raio, stroke: false, fillColor: cor, fillOpacity: op }) });
-  camadas.sel = L.featureGroup([camada("#000000", 24, 0.22, 22), camada("#ffffff", 15, 0.9, 17)]).addTo(mapa);
-  // zoom na parte DENTRO do limite dos municípios selecionados (pontos da linha que caem nos polígonos);
-  // se nenhum ponto cair dentro, a feição inteira
-  const gms = GEO.municipios.features.filter(f => SEL.includes(f.properties.cod)).map(f => f.geometry);
-  const pts = [], ok = c => { if (gms.some(g => dentro(c, g))) pts.push([c[1], c[0]]); };
-  // linhas: também pontos intermediários a cada ~200 m (trecho reto pode ter só um vértice dentro do município)
-  const vai = c => {
-    if (typeof c[0] === "number") return ok(c);
-    if (typeof c[0][0] !== "number") return c.forEach(vai);
-    c.forEach((p, i) => { ok(p); const q = c[i + 1]; if (!q) return;
-      const n = Math.min(200, Math.floor(Math.hypot(q[0] - p[0], q[1] - p[1]) / 0.002));
-      for (let k = 1; k < n; k++) ok([p[0] + (q[0] - p[0]) * k / n, p[1] + (q[1] - p[1]) * k / n]); });
-  };
-  fs.forEach(f => vai(f.geometry.coordinates));
-  const alvo = pts.length ? L.latLngBounds(pts) : camadas.sel.getBounds();
-  mapa.fitBounds(alvo, { padding: [40, 40], maxZoom: 14 });
+  const lin = fs.filter(f => f.geometry.type !== "Point");
+  const dentroR = partesDentro(lin), div = [];
+  dentroR.forEach(r => { if (r.iniB) div.push(r.pts[0]); if (r.fimB) div.push(r.pts[r.pts.length - 1]); });
+  const inteiras = juntaPartes(lin.flatMap(f => linhasDe(f.geometry).map(c => ({ pts: c.slice(), iniB: false, fimB: false }))), 0.0025);
+  info = info || { tit: "Seleção", ls: [] };
+  COTA = { fs, dentro: dentroR, inteiras, div, info,
+    pts: fs.filter(f => f.geometry.type === "Point").map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]),
+    rotRec: LOTE_SEL ? "No lote" : SEL.length > 1 ? "Nos municípios" : "No município", rotInt: info.int || "Inteiro" };
+  camadas.sel = new Foco().addTo(mapa);
+  aplicaVista();
   if (!APRES) document.getElementById("mapa").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 // trecho do quadro que não está no mapa do SRE (coincidente com BR / jurisdição federal): a geometria vem de
 // data/<mês>/sre_zoom.geojson, baixado só no primeiro clique que precisar (19/11/2026)
 const SRE_ZOOM = {};
-async function destacaTrecho(sre) {
+async function destacaTrecho(sre, l) {
   let fs = GEO.sre.features.filter(f => f.properties.sre === sre);
   if (!fs.length) {
     const mes = MES_SITE, base = typeof DADOS !== "undefined" ? DADOS : "";
@@ -1161,13 +1441,45 @@ async function destacaTrecho(sre) {
       .catch(() => ({ features: [] }));
     fs = (await SRE_ZOOM[mes]).features.filter(f => f.properties.sre === sre);
   }
-  destacaFeicoes(fs);
+  destacaFeicoes(fs, l && resumoSRE(l));
 }
+// obra/projeto: TODOS os pedaços do código (de qualquer município); o recorte é feito na vista "No município"
 function destacaObra(l) {
   const pontual = l.tipo === "Pontual", projeto = l.natureza === "Projeto";
   const n = (projeto ? "dpj_" : "dor_") + (pontual ? "pontos" : "linhas");
-  destacaFeicoes((GEO[n]?.features || []).filter(f => f.properties.codigo === l.codigo &&
-    (projeto && !pontual ? (f.properties.mun || []).some(c => SEL.includes(c)) : SEL.includes(f.properties.cod_ibge))));
+  let fs = (GEO[n]?.features || []).filter(f => f.properties.codigo === l.codigo);
+  if (pontual) fs = fs.filter(f => SEL.includes(f.properties.cod_ibge));
+  destacaFeicoes(fs, resumoObra(l));
+}
+// clique real no ícone da placa (obra/projeto pontual): o marcador não repassa o clique ao mapa, então ele mesmo aplica
+// as regras do clique no mapa — mesma placa destacada = nada; senão destaca (e troca de município, se for o caso)
+function clicaPlaca(e, f, projeto) {
+  if (APRES || COORD) return;
+  L.DomEvent.stopPropagation(e); mapa.closePopup(); POP_ANTES = false;
+  const ll = e.target.getLatLng();
+  if (COTA && pertoDoDestaque(mapa.latLngToContainerPoint(ll), 2)) return;
+  destacaObraMapa(f.properties, projeto, true, ll);
+}
+// 23/11/2026: clique direto na linha/placa da obra ou do projeto no mapa = mesmo destaque do quadro (no lugar do popup).
+// Os dados vêm da linha do quadro; se o item não está na seleção, de qualquer município do atlas; por fim, do próprio mapa
+function destacaObraMapa(p, projeto, pontual, ll) {
+  const nat = projeto ? "Projeto" : "Obra", acha = os => (os || []).find(o => o.codigo === p.codigo && (o.natureza || nat) === nat);
+  // 23/11/2026: clique numa parte do item que fica num município FORA da seleção (outro item, ou a parte apagada do
+  // mesmo) = a página inteira vai para o município clicado e depois destaca nele. Item sem nenhuma parte na seleção e
+  // clique fora de todos os municípios dele = vai para o de maior extensão
+  const muns = Object.entries(A.municipios).filter(([, m]) => acha(m.obras)).map(([c]) => c);
+  const aqui = ll && municipioEm(ll)?.properties.cod, ext = c => +(acha(A.municipios[c].obras).km_mun || 0);
+  if (muns.includes(aqui) && !SEL.includes(aqui)) selecionaLista([aqui]);
+  else if (muns.length && !muns.some(c => SEL.includes(c))) selecionaLista([muns.sort((a, b) => ext(b) - ext(a))[0]]);
+  let r = acha(M?.obras);
+  if (!r) for (const m of Object.values(A.municipios)) if ((r = acha(m.obras))) break;
+  r = r || {};
+  const l = { ...r, codigo: p.codigo, rodovia: r.rodovia || p.rodovia, intervencao: r.intervencao || p.intervencao,
+    etapa: r.etapa || p.etapa, natureza: nat, tipo: pontual ? "Pontual" : r.tipo || "Trecho" };
+  if (!pontual) return destacaObra(l);
+  const fs = (GEO[projeto ? "dpj_pontos" : "dor_pontos"]?.features || [])     // pontual: só a placa clicada (o mesmo município)
+    .filter(f => f.properties.codigo === p.codigo && (!p.cod_ibge || f.properties.cod_ibge === p.cod_ibge));
+  destacaFeicoes(fs, resumoObra(l));
 }
 
 /* ---------------- seleção: um ou vários municípios (13/11/2026) ---------------- */
@@ -1199,7 +1511,7 @@ function selecionaLista(cods, hist = true, lote = null) {
     : "NO MUNICÍPIO DE " + nomes[0].toUpperCase());
   $("#q").value = ""; $("#q").placeholder = COMB ? "Somar outro município…" : (multi ? "Buscar município…" : nomes[0] + " — buscar outro município…");
   $("#pag").textContent = multi ? `${SEL.length} municípios selecionados` : `Página ${ms[0].ordem} de ${LISTA.length}`;
-  if (camadas.sel) { mapa.removeLayer(camadas.sel); camadas.sel = null; }
+  limpaDestaque();
   preencheArea(); destacaMunicipios(SEL); montaRotulosVias(SEL); enquadra(); atualizaRotulos();
   cartoes(M); grafSituacao(M); grafRodovia(M); grafUrbano(M); grafPeso(SEL, M); grafTipoObra(M);
   tabelaObras(M, multi); tabelaSRE(M, multi); comparacao(); barraSelecao();
@@ -1586,7 +1898,7 @@ function tabelaSRE(m, multi = false) {
     { k: "km_ini", t: "Km inicial", f: v => num(v, 2) }, { k: "km_fim", t: "Km final", f: v => num(v, 2) },
     { k: "ext", t: "Ext. SRE (Km)", f: v => num(v, 2) }, { k: "ext_mun", t: "Ext. no mun. (Km)", f: v => num(v, 2) },
     { k: "pct_mun", t: "% no mun.", f: v => num(v, 1) }, { k: "situacao", t: "Situação" }, { k: "jurisdicao", t: "Jurisdição" },
-    { k: "perim_urb", t: "Perím. urb." }], m.trechos || [], "Sem trechos do SRE no município", l => destacaTrecho(l.sre));
+    { k: "perim_urb", t: "Perím. urb." }], m.trechos || [], "Sem trechos do SRE no município", l => destacaTrecho(l.sre, l));
 }
 $("#filtro").addEventListener("input", e => tSRE && tSRE.filtra(e.target.value));
 
