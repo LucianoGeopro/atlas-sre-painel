@@ -200,3 +200,35 @@ html.modo-painel .mapa .fundo-menu { top: 40px; left: auto; right: 0; z-index: 1
   box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
 html.modo-painel .mapa .escala-barra, html.modo-painel .mapa .leitura-coord { border: 1px solid #dfe5e1; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(16, 40, 28, .18); }
+
+/* 23/11/2026: seleção do quadro no mapa — SEM COR (regra do usuário): sombra projetada no item + resto do mapa na sombra,
+   etiquetas de início/fim e caixa do resumo neutras (branco/cinza), no estilo dos cartões do painel */
+.foco-veu { opacity: 0; transition: opacity .35s ease; }
+.foco-veu.on { opacity: 1; }
+.leaflet-marker-icon.cota-ic { width: 0 !important; height: 0 !important; background: none; border: 0; overflow: visible; }
+.cota-cx { position: absolute; left: 0; top: 0; white-space: nowrap; background: #fff; color: #1d2b24; border: 1px solid #dfe5e1;
+  border-radius: 10px; padding: 8px 30px 8px 11px; font: 12px/1.45 Arial, Helvetica, sans-serif;
+  box-shadow: 0 6px 18px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3); cursor: move; user-select: none; }
+.cota-cx b { display: block; font-size: 13px; margin-bottom: 3px; }
+.cota-cx .cx-s { color: #5f6b64; font-size: 11px; max-width: 300px; white-space: normal; margin-top: 3px; }
+.cota-x { position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 5px;
+  background: transparent; color: #5f6b64; font-size: 13px; line-height: 20px; cursor: pointer; }
+.cota-x:hover { background: #eef1ef; color: #1d2b24; }
+.cota-vis { display: inline-flex; margin: 1px 0 6px; padding: 2px; background: #eef1ef; border-radius: 7px; gap: 2px; }
+.cota-v { border: 0; border-radius: 5px; background: transparent; color: #5f6b64; font: bold 11px Arial, Helvetica, sans-serif;
+  padding: 3px 9px; cursor: pointer; }
+.cota-v.on { background: #fff; color: #1d2b24; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.cota-v:not(.on):hover { color: #1d2b24; }
+.foco-pino { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: #fff;
+  border: 2px solid #1d2b24; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
+.foco-pino.div { background: #1d2b24; border-color: #fff; }
+.foco-tag { position: absolute; top: 0; transform: translateY(-50%); white-space: nowrap; background: rgba(255,255,255,.96); color: #1d2b24;
+  font: bold 11px Arial, Helvetica, sans-serif; padding: 3px 7px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.45); }
+.foco-tag.dir { left: 10px; }
+.foco-tag.esq { right: 10px; }
+.foco-tag.div { background: rgba(29,43,36,.92); color: #fff; font-weight: normal; }
+.tab tbody tr.sel td:first-child { box-shadow: inset 4px 0 0 #1d2b24; }
+.cota-cx .cx-km { display: flex; align-items: baseline; gap: 8px; margin: 2px 0 1px; }
+.cota-cx .cx-km span { color: #5f6b64; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.cota-cx .cx-km strong { font-size: 19px; line-height: 1.15; color: #1d2b24; }
+@media print { .cota-x, .cota-vis { display: none !important; } }
