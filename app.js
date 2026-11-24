@@ -684,6 +684,7 @@ function iniciaMapa() {
   // 13/11/2026: painéis só de desenho não podem "engolir" o clique (o clique tem que chegar ao município)
   ["mascara", "vias", "topo"].forEach(p => mapa.getPane(p).style.pointerEvents = "none");
   const rnd = L.canvas({ padding: 0.3 });
+  divisasEstaduais();
 
   // 13/11/2026: as camadas nascem vazias e recebem só a área do município selecionado (preencheArea)
   camadas.perimetro = L.geoJSON(null, { renderer: rnd,
@@ -1114,6 +1115,68 @@ function destacaMunicipios(cods) {
   camadas.mascara = new AreaSel(aneis, "mascara").addTo(mapa);
   camadas.contorno = new AreaSel(aneis, "contorno").addTo(mapa);
 }
+// 23/11/2026: divisas estaduais em realce (linha escura com contorno branco, acima do véu e abaixo das rodovias) e o
+// nome dos estados vizinhos no mapa. Fonte: malha de UFs do IBGE 2025 (data/estados.geojson, só GO e vizinhos, recortados
+// numa caixa em volta de Goiás — o corte da caixa não é desenhado). O nome vai no meio da parte visível de cada estado.
+function divisasEstaduais() {
+  mapa.createPane("divisa").style.zIndex = 392;
+  mapa.getPane("divisa").style.pointerEvents = "none";
+  const CX = [-58, -23, -41, -9], naCaixa = ([x, y]) => x <= CX[0] + 1e-3 || x >= CX[2] - 1e-3 || y <= CX[1] + 1e-3 || y >= CX[3] - 1e-3;
+  fetch("data/estados.geojson").then(r => r.ok ? r.json() : null).then(gj => {
+    if (!gj) return;
+    const linhas = [];
+    gj.features.forEach(f => (f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates)
+      .forEach(p => p.forEach(anel => { let run = [];
+        for (let i = 0; i < anel.length; i++) {
+          if (i && naCaixa(anel[i]) && naCaixa(anel[i - 1])) { if (run.length > 1) linhas.push(run); run = []; }
+          run.push(L.latLng(anel[i][1], anel[i][0])); }
+        if (run.length > 1) linhas.push(run); })));
+    const rd = L.canvas({ pane: "divisa", padding: 0.3 }), op = { renderer: rd, interactive: false, lineJoin: "round" };
+    L.layerGroup([L.polyline(linhas, { ...op, color: "#ffffff", weight: 6, opacity: 0.9 }),
+      L.polyline(linhas, { ...op, color: "#2b2b2b", weight: 2.5, opacity: 1 })]).addTo(mapa);
+    // rótulos dos vizinhos
+    const viz = gj.features.filter(f => f.properties.sigla !== "GO").map(f => {
+      const ps = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
+      const mk = L.marker([0, 0], { pane: "rotulos", interactive: false, keyboard: false,
+        icon: L.divIcon({ className: "uf-rot", html: `<span>${esc(f.properties.nome.toLocaleUpperCase("pt-BR"))}</span>`, iconSize: null }) });
+      return { ps, mk, bb: L.latLngBounds(ps.flatMap(p => p[0].map(([x, y]) => [y, x]))) };
+    });
+    const dentro = (ps, x, y) => ps.some(p => { const no = r => { let d = false;
+      for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [xi, yi] = r[i], [xj, yj] = r[j];
+        if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) d = !d; } return d; };
+      return no(p[0]) && !p.slice(1).some(no); });
+    const posiciona = () => {
+      const s = mapa.getSize(), vb = mapa.getBounds(), N = 20, M = 14;
+      viz.forEach(v => {
+        let pts = [];
+        if (vb.intersects(v.bb)) for (let i = 1; i < N; i++) for (let j = 1; j < M; j++) {
+          const ll = mapa.containerPointToLatLng([s.x * i / N, s.y * j / M]);
+          if (v.bb.contains(ll) && dentro(v.ps, ll.lng, ll.lat)) pts.push(ll); }
+        if (pts.length < 3) { mapa.removeLayer(v.mk); return; }
+        if (!v.w) { v.mk.setLatLng(pts[0]).addTo(mapa); v.w = v.mk.getElement().firstChild.offsetWidth || 160; }
+        // o nome inteiro tem que caber na tela (longe da barra de botões e da escala) e dentro do estado
+        const cabe = ll => { const p = mapa.latLngToContainerPoint(ll), h = v.w / 2 + 6;
+          if (p.x - h < 0 || p.x + h > s.x || p.y < 70 || p.y > s.y - 40) return false;
+          return [-h, h].every(dx => { const q = mapa.containerPointToLatLng([p.x + dx, p.y]); return dentro(v.ps, q.lng, q.lat); }); };
+        const cy = pts.reduce((a, p) => a + p.lat, 0) / pts.length, cx = pts.reduce((a, p) => a + p.lng, 0) / pts.length;
+        pts = pts.filter(cabe);
+        if (!pts.length) { mapa.removeLayer(v.mk); return; }
+        pts.sort((a, b) => (a.lat - cy) ** 2 + (a.lng - cx) ** 2 - (b.lat - cy) ** 2 - (b.lng - cx) ** 2);
+        v.mk.setLatLng(pts[0]).addTo(mapa);
+      });
+    };
+    mapa.on("moveend zoomend resize", posiciona); posiciona();
+  }).catch(() => {});
+}
+// anéis externos de todos os municípios (= território de Goiás), calculados uma vez
+let GO_ANEIS = null;
+function goiasAneis() {
+  if (GO_ANEIS) return GO_ANEIS;
+  GO_ANEIS = [];
+  GEO.municipios.features.forEach(f => (f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates)
+    .forEach(p => { const ll = p[0].map(([x, y]) => L.latLng(y, x)); GO_ANEIS.push({ ll, bb: L.latLngBounds(ll) }); }));
+  return GO_ANEIS;
+}
 // desenho da área selecionada num canvas próprio, sem receber clique
 const AreaSel = L.Layer.extend({
   initialize(aneis, tipo) { this._a = aneis; this._t = tipo; },
@@ -1137,7 +1200,16 @@ const AreaSel = L.Layer.extend({
     const x = c.getContext("2d"); x.setTransform(r, 0, 0, r, ox * r, oy * r);
     const anel = a => { x.beginPath(); a.forEach((ll, i) => { const p = m.latLngToContainerPoint(ll); i ? x.lineTo(p.x, p.y) : x.moveTo(p.x, p.y); }); x.closePath(); };
     if (this._t === "mascara") {
-      x.fillStyle = estiloMascara(); x.fillRect(-ox, -oy, w, h);
+      // 23/11/2026: esbranquiçado só dentro de Goiás (todos os municípios num caminho só, sem fresta nas divisas);
+      // outros estados e o DF ficam com o mapa base puro. Pontos a menos de 1 px do anterior são pulados.
+      const vb = m.getBounds().pad(P + 0.05), ar = goiasAneis();
+      x.fillStyle = estiloMascara(); x.beginPath();
+      ar.forEach(a => { if (!vb.intersects(a.bb)) return; let u = null;
+        a.ll.forEach((ll, i) => { const p = m.latLngToContainerPoint(ll);
+          if (!i) x.moveTo(p.x, p.y); else if (Math.abs(p.x - u.x) + Math.abs(p.y - u.y) >= 1) x.lineTo(p.x, p.y); else return;
+          u = p; });
+        x.closePath(); });
+      x.fill();
     } else {
       x.strokeStyle = "#ffd400"; x.lineWidth = 8; x.lineJoin = "round";
       this._a.forEach(a => { anel(a); x.stroke(); });
