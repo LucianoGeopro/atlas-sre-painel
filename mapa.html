@@ -22,7 +22,7 @@
 <!-- Leaflet 1.9.4 guardado no próprio site (18/11/2026): não depende do unpkg -->
 <link rel="stylesheet" href="lib/leaflet/leaflet.css">
 <link rel="stylesheet" href="style.css?v=16">
-<link rel="stylesheet" href="painel.css?v=9">
+<link rel="stylesheet" href="painel.css?v=12">
 <!-- tema (18/11/2026): o site sempre abre no tema claro; o escuro vale só enquanto a aba estiver aberta (sessionStorage) -->
 <script>try { if (/tema=escuro/.test(location.search) || sessionStorage.getItem("painel-tema") === "escuro") document.documentElement.dataset.tema = "escuro"; } catch (e) { if (/tema=escuro/.test(location.search)) document.documentElement.dataset.tema = "escuro"; }
 window.ATLAS_RECARGA = (function () { var n = performance.getEntriesByType ? performance.getEntriesByType("navigation")[0] : null; return !!n && n.type === "reload"; })();
@@ -279,8 +279,8 @@ document.documentElement.classList.add("modo-painel");</script>
 <div id="carregando" class="carregando">Carregando o atlas…</div>
 
 <script src="lib/leaflet/leaflet.js"></script>
-<script src="app.js?v=25"></script>
-<script src="novidades.js?v=17"></script>
+<script src="app.js?v=44"></script>
+<script src="novidades.js?v=25"></script>
 <script src="painel.js?v=4"></script>
 </body>
 </html>
