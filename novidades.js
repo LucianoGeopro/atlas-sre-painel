@@ -7,6 +7,7 @@
   "use strict";
   const HIST = [
     { data: "23/11/2026", itens: [
+      "Quadros de trechos do SRE e de obras e projetos: ao clicar numa linha, o item fica em destaque no mapa com a simbologia original, uma sombra por baixo e o restante do mapa escurecido; início e fim aparecem marcados (com o Km no SRE) e uma caixa mostra o resumo. Na caixa, escolha ver só a parte <b>no município</b> (ou no lote), com a extensão dentro dele, ou o item <b>inteiro</b>, com a extensão total declarada na obra ou no projeto, os municípios por onde passa e as divisas marcadas. O mesmo destaque aparece ao clicar direto numa obra ou num projeto no mapa, na linha ou na placa das obras e projetos pontuais; se ela estiver em outro município, a página passa para esse município. A caixa pode ser arrastada. Para desfazer a seleção, basta clicar fora do item no mapa (ou no <b>✕</b>, ou a tecla Esc); clicar em outra obra ou projeto já seleciona o novo.",
       "Abas verdes com setas <b>❮ ❯</b> ao lado do mapa, agora maiores e mais visíveis: recolhem ou abrem os painéis da esquerda e da direita para o mapa ganhar espaço.",
       "Novo: botão de <b>camadas</b> no mapa, ao lado de <b>Coordenadas</b>, para trocar o fundo: Satélite (padrão), Satélite + nomes, OpenStreetMap, Ruas (claro) ou Topográfico.",
       "Mapa com visual novo: os botões de visualização (aproximar/afastar, <b>Município</b>, <b>Expandir mapa</b> e <b>Coordenadas</b>) agora ficam numa barra no alto do mapa, e a escala numérica fica embaixo, junto da barra de escala.",
