@@ -120,7 +120,7 @@ function htmlSRE(p) {
   return h;
 }
 function htmlSNV(p) {
-  return `<div class="bt">BR-${esc(p.br)} · Federal</div>` + tabB([linB("Superfície", SIT[p.leg]?.[0] || esc(p.leg))]);
+  return `<div class="bt">BR-${esc(p.br)}</div>` + tabB([linB("Superfície", SIT[p.leg]?.[0] || esc(p.leg))]);
 }
 // obra (DOR) ou projeto (DPJ): dados do quadro "Obras e projetos" da seleção, pelo código
 function htmlObra(p, projeto) {
@@ -698,7 +698,7 @@ function iniciaMapa() {
     style: { color: T_LT, weight: 2, fillColor: T_LT, fillOpacity: 0.08, dashArray: "6 4" } });
   camadas.snv = L.geoJSON(null, { renderer: rnd, pane: "vias",
     style: { color: "#33a02c", weight: 3 },
-    onEachFeature: (f, l) => { l.bindTooltip(`BR-${esc(f.properties.br)} · Federal`, { sticky: true }); balaoMapa(l, () => htmlSNV(f.properties)); } });
+    onEachFeature: (f, l) => { l.bindTooltip(`BR-${esc(f.properties.br)}`, { sticky: true }); balaoMapa(l, () => htmlSNV(f.properties)); } });
   camadas.sre = L.geoJSON(null, { renderer: rnd, pane: "vias", style: estiloSRE,
     onEachFeature: (f, l) => { l.bindTooltip(`<b>GO-${esc(f.properties.go)}</b> · ${esc(f.properties.sre)}<br>${SIT[f.properties.sit]?.[0] || esc(f.properties.sit)}`, { sticky: true });
       balaoMapa(l, () => htmlSRE(f.properties)); } });
