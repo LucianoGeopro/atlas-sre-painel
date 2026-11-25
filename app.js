@@ -438,7 +438,7 @@ function modoApres() {
   if (!APRES) return;
   ZF = 1; fechaBalao();                               // outro município: volta a caber na tela
   const cod = SEL[0];
-  IMG = SEL.length === 1 && !SEM_IMG.has(cod);
+  IMG = false;                                        // 25/11/2026: um município também usa a folha montada (interativa), como os combinados
   document.documentElement.classList.toggle("apres", !IMG);
   document.documentElement.classList.toggle("apres-img", IMG);
   const caixa = $("#apres-img");
