@@ -96,10 +96,13 @@ function abreBalao(ev, html) {
 }
 function fechaBalao() { balao.hidden = true; }
 // elemento do mapa: no modo apresentação, o clique mostra as informações em vez de trocar o município
-function balaoMapa(l, html) {
+// 25/11/2026: obra/projeto (sel) = na apresentação, a mesma seleção do painel (destaque + caixa), não o balão
+function balaoMapa(l, html, sel) {
   l.on("click", e => {
     if (!APRES || IMG) return;
-    L.DomEvent.stopPropagation(e); abreBalao(e.originalEvent, html());
+    L.DomEvent.stopPropagation(e);
+    if (sel) { fechaBalao(); if (!(COTA && pertoDoDestaque(e.containerPoint, l.getLatLng ? 2 : 10))) sel(e); return; }
+    abreBalao(e.originalEvent, html());
   });
 }
 const linB = (k, v) => (v === undefined || v === null || v === "") ? "" : `<tr><td>${k}</td><td>${v}</td></tr>`;
@@ -716,23 +719,25 @@ function iniciaMapa() {
     `<br>${esc(p.rodovia || "")} · ${esc(p.codigo || "")}`;
   const dicaPlaca = (p, projeto) => dica(projeto ? "Projeto" : "Obra", p);
   const dorCasco = L.geoJSON(null, { renderer: rnd, pane: "obras", style: base,
-      onEachFeature: (f, l) => { l.bindTooltip(dica("Obra", f.properties), { sticky: true }); balaoMapa(l, () => htmlObra(f.properties, false)); } });
+      onEachFeature: (f, l) => { l.bindTooltip(dica("Obra", f.properties), { sticky: true }); balaoMapa(l, () => htmlObra(f.properties, false), e => destacaObraMapa(f.properties, false, false, e.latlng)); } });
   const dorCor = L.geoJSON(null, { renderer: rnd, pane: "obras", interactive: false, style: topo });
   camadas.dorL = L.layerGroup([dorCasco, dorCor]);
   const placa = (f, projeto) => L.icon({ iconUrl: PLACA[catPlaca(f.properties, projeto)][0], iconSize: [22, 22], iconAnchor: [11, 11] });
   camadas.dorP = L.geoJSON(null, { pane: "projP",
     pointToLayer: (f, ll) => L.marker(ll, { pane: "projP", icon: placa(f, false) }),
     onEachFeature: (f, l) => { l.bindTooltip(dicaPlaca(f.properties, false));
-      balaoMapa(l, () => htmlObra(f.properties, false)); l.on("click", e => clicaPlaca(e, f, false)); } });
+      balaoMapa(l, () => htmlObra(f.properties, false), () => destacaObraMapa(f.properties, false, true, l.getLatLng()));
+      l.on("click", e => clicaPlaca(e, f, false)); } });
   const pjBase = L.geoJSON(null, { renderer: rnd, pane: "projetos", style: base,
-      onEachFeature: (f, l) => { l.bindTooltip(dica("Projeto", f.properties), { sticky: true }); balaoMapa(l, () => htmlObra(f.properties, true)); } });
+      onEachFeature: (f, l) => { l.bindTooltip(dica("Projeto", f.properties), { sticky: true }); balaoMapa(l, () => htmlObra(f.properties, true), e => destacaObraMapa(f.properties, true, false, e.latlng)); } });
   const pjTopo = L.geoJSON(null, { renderer: rnd, pane: "projetos", interactive: false, style: topo });
   dorCor._topo = pjTopo._topo = true;              // traço branco: não é desenhado com zoom afastado (preencheArea)
   camadas.projL = L.layerGroup([pjBase, pjTopo]);
   camadas.projP = L.geoJSON(null, { pane: "projP",
     pointToLayer: (f, ll) => L.marker(ll, { pane: "projP", icon: placa(f, true) }),
     onEachFeature: (f, l) => { l.bindTooltip(dicaPlaca(f.properties, true));
-      balaoMapa(l, () => htmlObra(f.properties, true)); l.on("click", e => clicaPlaca(e, f, true)); } });
+      balaoMapa(l, () => htmlObra(f.properties, true), () => destacaObraMapa(f.properties, true, true, l.getLatLng()));
+      l.on("click", e => clicaPlaca(e, f, true)); } });
   camadas.loc = L.geoJSON(null, {
     pointToLayer: (f, ll) => L.circleMarker(ll, { renderer: rnd, radius: /Sede|Capital/.test(f.properties.t) ? 4 : 2.5, color: "#222",
       weight: 1, fillColor: "#fff", fillOpacity: 1 }),
@@ -750,7 +755,14 @@ function iniciaMapa() {
     if (COORD) { mostraCoord(e.latlng, true); return; }   // modo coordenadas: o clique copia, não troca município
     const f = municipioEm(e.latlng);
     // apresentação: o clique mostra o balão do elemento (ou do município); não mexe na seleção (trocar = setas ← →)
-    if (APRES && !IMG) { const h = elementoEm(e) || (f && htmlMun(f.properties.cod)); if (h) abreBalao(e.originalEvent, h); return; }
+    // 25/11/2026: obra/projeto = a mesma seleção do painel (destaque + caixa); clique fora do item desfaz; o resto segue com o balão
+    if (APRES && !IMG) {
+      if (COTA && pertoDoDestaque(e.containerPoint)) return;
+      const ob = maisPerto(e, [[camadas.projP, p => [p, true, true], 13], [camadas.dorP, p => [p, false, true], 11],
+        [camadas.dorL, p => [p, false, false], 8], [camadas.projL, p => [p, true, false], 8]]);
+      if (ob) { fechaBalao(); destacaObraMapa(...ob, e.latlng); return; }
+      if (COTA) { fechaBalao(); limpaDestaque(); return; }
+      const h = elementoEm(e) || (f && htmlMun(f.properties.cod)); if (h) abreBalao(e.originalEvent, h); return; }
     const oe = e.originalEvent || {};
     // 18/11/2026: em cima de trecho do SRE, obra ou projeto abre o popup (Ctrl/Shift + clique continua somando município)
     // 23/11/2026: obra ou projeto = destaque igual ao do quadro (véu, sombra, início/fim e caixa); SRE segue com o popup.
@@ -824,7 +836,8 @@ function iniciaMapa() {
     const t = mapa.getSize(); if (!t.x) return;
     // PAINEL (23/11/2026): no modo painel a escala numérica fica embaixo, logo acima da barra de escala;
     // na folha A3 (apresentação) volta ao lugar de sempre, abaixo do zoom
-    const cc = mapa._controlCorners, emPainel = document.documentElement.classList.contains("modo-painel");
+    // 25/11/2026: na apresentação também fica embaixo, como no painel
+    const cc = mapa._controlCorners, emPainel = APRES || document.documentElement.classList.contains("modo-painel");
     if (emPainel && en._d.nextSibling !== eb._d) cc.bottomleft.insertBefore(en._d, eb._d);
     else if (!emPainel && en._d.parentNode !== cc.topleft) cc.topleft.insertBefore(en._d, cc.topleft.children[1] || null);
     const y = t.y / 2, x0 = Math.max(0, t.x / 2 - 50);
