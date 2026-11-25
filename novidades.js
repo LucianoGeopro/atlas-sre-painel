@@ -7,6 +7,13 @@
 (() => {
   "use strict";
   const HIST = [
+    { data: "25/11/2026", itens: [
+      "Obras e projetos atualizados com os cadastros de 25/11/2026.",
+      "Novos projetos: pavimentação em Aloândia, Hidrolândia, Bom Jesus de Goiás / Goiatuba e Trindade / Goiânia; ponte sobre o Rio dos Bois (Diorama) e duas interseções em desnível na GO-222 (Nova Veneza).",
+      "Nova obra: pavimentação de estrada vicinal em Itaberaí.",
+      "Situação das obras atualizada conforme o cadastro (contratadas, em andamento, suspensas).",
+      "Saíram do cadastro: o projeto de duplicação da GO-174 / GO-422 (Cachoeira Alta / Rio Verde) e o projeto da ponte sobre o Rio das Almas na GO-241 (Cavalcante).",
+    ] },
     { data: "23/11/2026", itens: [
       "Quadros de trechos do SRE e de obras e projetos: ao clicar numa linha, o item fica em destaque no mapa com a simbologia original, uma sombra por baixo e o restante do mapa escurecido; início e fim aparecem marcados (com o Km no SRE) e uma caixa mostra o resumo. Na caixa, escolha ver só a parte <b>no município</b> (ou no lote), com a extensão dentro dele, ou o item <b>inteiro</b>, com a extensão total declarada na obra ou no projeto, os municípios por onde passa e as divisas marcadas. O mesmo destaque aparece ao clicar direto numa obra ou num projeto no mapa, na linha ou na placa das obras e projetos pontuais; se ela estiver em outro município, a página passa para esse município. A caixa pode ser arrastada. Para desfazer a seleção, basta clicar fora do item no mapa (ou no <b>✕</b>, ou a tecla Esc); clicar em outra obra ou projeto já seleciona o novo.",
       "Mapa: o fundo clareado fora do município selecionado agora fica só dentro de Goiás; os outros estados e o Distrito Federal aparecem com o mapa de fundo normal. As divisas estaduais ficam em destaque e o nome dos estados vizinhos aparece no mapa.",
