@@ -8,11 +8,12 @@
   "use strict";
   const HIST = [
     { data: "26/11/2026", itens: [
+      "<b>Projetos atualizados</b> com o cadastro de 26/11/2026: o site passa a mostrar 151 projetos (antes eram 155).",
+      "Saíram do cadastro quatro projetos de pavimentação, todos na etapa Projeto: <b>GO-236 / GO-114</b>, do entroncamento da GO-116 ao perímetro urbano de Flores de Goiás (Flores de Goiás / São João d'Aliança); <b>GO-116</b>, do Km 22 ao entroncamento da GO-236 (Formosa / São João d'Aliança); <b>GO-236</b>, do entroncamento da GO-116 ao da GO-118 (São João d'Aliança); e <b>GO-116</b>, entre os dois entroncamentos com a GO-236 (São João d'Aliança).",
+      "Nenhum projeto novo e nenhuma mudança nos demais projetos. As obras continuam iguais.",
       "Novo: botão <b>🖨 Gerar caderno</b> na página inicial, para montar e imprimir (ou salvar em PDF) o caderno de mapas em folha A3 deitada.",
       "Escolha o que entra no caderno: todos os municípios, os municípios de um lote ou só os que você marcar na lista; a ordem pode ser alfabética ou agrupada por lote.",
-      "O caderno sai com capa, folha de rosto e índice. A numeração das páginas e o índice se ajustam sozinhos aos municípios escolhidos.",
-      "Projetos atualizados com o cadastro de 26/11/2026: saíram quatro projetos de pavimentação na GO-116 e na GO-236, em São João d'Aliança, Flores de Goiás e Formosa.",
-    ] },
+      "O caderno sai com capa, folha de rosto e índice. A numeração das páginas e o índice se ajustam sozinhos aos municípios escolhidos.",    ] },
     { data: "25/11/2026", itens: [
       "Obras e projetos atualizados com os cadastros de 25/11/2026.",
       "Novos projetos: pavimentação em Aloândia, Hidrolândia, Bom Jesus de Goiás / Goiatuba e Trindade / Goiânia; ponte sobre o Rio dos Bois (Diorama) e duas interseções em desnível na GO-222 (Nova Veneza).",
