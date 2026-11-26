@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="inicio.css?v=2">
 <!-- tema: sempre abre no claro; o escuro vale só enquanto a aba estiver aberta (sessionStorage) -->
 <script>try { if (/tema=escuro/.test(location.search) || sessionStorage.getItem("painel-tema") === "escuro") document.documentElement.dataset.tema = "escuro"; } catch (e) {}</script>
+<style>.atalhos{grid-template-columns:repeat(4,minmax(0,1fr))}.at-cad{background:linear-gradient(135deg,#5a2d82,#8a4fc0)}@media(max-width:900px){.atalhos{grid-template-columns:minmax(0,1fr)}}</style>
 </head>
 <body>
 <!-- página inicial (18/11/2026), no modelo do painel do SIPLAWEB: números de Goiás, cartões por lote e atalhos -->
@@ -56,6 +57,7 @@
     <a class="atalho at-mapa" href="mapa.html"><span class="at-svg" id="atSvgMapa"></span><div><b>Mapa por município</b><span>Mapa, indicadores, gráficos e quadros de cada município</span></div></a>
     <a class="atalho at-comb" href="mapa.html?combinar=1"><span class="at-svg" id="atSvg"></span><div><b>Combinar municípios</b><span>Some vários municípios e compare lado a lado</span></div></a>
     <a class="atalho at-sobre" href="mapa.html?sobre=1"><div><b>Sobre os dados</b><span>Fontes, cálculo dos indicadores e cuidados na leitura</span></div></a>
+    <a class="atalho at-cad" href="caderno.html"><div><b>🖨 Gerar caderno</b><span>Monte e imprima o caderno com todos ou só os municípios escolhidos</span></div></a>
   </nav>
 
   <h2>Lotes de manutenção</h2>
