@@ -7,6 +7,11 @@
 (() => {
   "use strict";
   const HIST = [
+    { data: "26/11/2026", itens: [
+      "Novo: botão <b>🖨 Gerar caderno</b> na página inicial, para montar e imprimir (ou salvar em PDF) o caderno de mapas em folha A3 deitada.",
+      "Escolha o que entra no caderno: todos os municípios, os municípios de um lote ou só os que você marcar na lista; a ordem pode ser alfabética ou agrupada por lote.",
+      "O caderno sai com capa, folha de rosto e índice. A numeração das páginas e o índice se ajustam sozinhos aos municípios escolhidos.",
+    ] },
     { data: "25/11/2026", itens: [
       "Obras e projetos atualizados com os cadastros de 25/11/2026.",
       "Novos projetos: pavimentação em Aloândia, Hidrolândia, Bom Jesus de Goiás / Goiatuba e Trindade / Goiânia; ponte sobre o Rio dos Bois (Diorama) e duas interseções em desnível na GO-222 (Nova Veneza).",
