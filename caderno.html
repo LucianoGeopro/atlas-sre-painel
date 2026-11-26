@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gerar caderno – Atlas SRE por Município</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#d9dde0;color:#222;display:flex;height:100vh;overflow:hidden}
+#lado{width:340px;flex:none;background:#fff;border-right:1px solid #c5ccd0;display:flex;flex-direction:column}
+#lado h1{margin:0;padding:14px 16px;background:#1d8a3e;color:#fff;font-size:17px}
+#lado .aviso{background:#fff6d6;color:#6b5300;font-size:12px;padding:8px 16px;border-bottom:1px solid #eee}
+.bloco{padding:10px 16px;border-bottom:1px solid #eee;font-size:13px}
+.bloco b{display:block;margin-bottom:6px;color:#1d6b35}
+.bloco label{display:block;margin:3px 0;cursor:pointer}
+#lote{width:100%;margin-top:4px;padding:4px}
+#busca{width:100%;padding:6px 8px;border:1px solid #bbb;border-radius:4px}
+.acoes{display:flex;gap:6px;margin-top:6px}
+.acoes button{flex:1;padding:4px;font-size:12px;cursor:pointer}
+#lista{flex:1;overflow:auto;padding:4px 16px;font-size:13px}
+#lista .gr{font-weight:bold;color:#1d6b35;margin:8px 0 2px}
+#lista label{display:block;padding:1px 0;cursor:pointer}
+#resumo{padding:10px 16px;font-size:13px;background:#f2f5f3;border-top:1px solid #ddd}
+#imprimir{margin:0 16px 14px;padding:10px;font-size:15px;font-weight:bold;background:#1d8a3e;color:#fff;border:0;border-radius:6px;cursor:pointer}
+#paginas{flex:1;overflow-y:auto;overflow-x:hidden;padding:24px}
+.pg{width:1240px;height:876.5px;margin:0 auto 24px;background:#fff;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.25);transform-origin:top left}
+.pg img.mapa{width:100%;height:100%;display:block}
+.num{position:absolute;right:0.9%;top:95.55%;width:5.2%;height:1.75%;background:#fff;font-weight:bold;font-size:11px;color:#1f5c3a;text-align:right;line-height:15px;padding-right:2px}
+.num2{position:absolute;right:28px;bottom:16px;font-size:12px;font-weight:bold;color:#1f5c3a}
+.capa img{width:100%;height:100%;object-fit:cover}
+.faixa{height:62px;background:#1d8a3e;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 50px}
+.faixa span{font-size:20px;font-weight:bold;letter-spacing:.5px}
+.faixa img{height:44px;background:#fff;padding:4px 10px;border-radius:3px}
+.rosto{display:flex;flex-direction:column;align-items:center;text-align:center;padding:60px 120px 40px}
+.rosto .org{font-size:15px;line-height:1.6;font-weight:bold;text-transform:uppercase}
+.rosto .tit{margin-top:150px;font-size:34px;font-weight:bold;color:#1d6b35}
+.rosto .sub{margin-top:12px;font-size:20px}
+.rosto .sel{margin-top:40px;font-size:16px;color:#444;max-width:900px}
+.rosto .loc{position:absolute;bottom:60px;left:0;right:0;font-size:16px}
+.indice{padding:26px 50px}
+.indice h2{margin:0 0 14px;font-size:22px;color:#1d6b35;letter-spacing:1px}
+.cols{display:flex;gap:40px}
+.col{flex:1;font-size:12.5px}
+.lin{display:flex;align-items:baseline;height:17.6px}
+.lin .n{white-space:nowrap}
+.lin .d{flex:1;border-bottom:1px dotted #999;margin:0 4px;transform:translateY(-3px)}
+.lin .p{white-space:nowrap;font-weight:bold}
+.lin.gr .n{font-weight:bold;color:#1d6b35}
+.lin.gr .d,.lin.gr .p{visibility:hidden}
+@media print{
+  @page{size:A3 landscape;margin:0}
+  body{display:block;height:auto;overflow:visible;background:#fff}
+  #lado{display:none}
+  #paginas{padding:0;overflow:visible}
+  .pg{margin:0 !important;box-shadow:none;page-break-after:always;zoom:1.278;transform:none !important}
+}
+</style></head><body>
+<aside id="lado">
+  <h1><a href="./" style="color:#fff;text-decoration:none;font-weight:normal;font-size:13px;display:block;margin-bottom:4px">← Início do painel</a>🖨 Gerar caderno</h1>
+  <div class="bloco"><b>Municípios</b>
+    <label><input type="radio" name="modo" value="todos" checked> Todos (246)</label>
+    <label><input type="radio" name="modo" value="lote"> Um lote <select id="lote"></select></label>
+    <label><input type="radio" name="modo" value="manual"> Escolher na lista</label>
+  </div>
+  <div class="bloco"><b>Ordem</b>
+    <label><input type="radio" name="ordem" value="alfa" checked> Alfabética</label>
+    <label><input type="radio" name="ordem" value="lote"> Agrupada por lote</label>
+  </div>
+  <div class="bloco"><input id="busca" placeholder="Buscar município…">
+    <div class="acoes"><button id="marcar">Marcar todos</button><button id="desmarcar">Desmarcar todos</button></div>
+  </div>
+  <div id="lista"></div>
+  <div id="resumo"></div>
+  <button id="imprimir">🖨 Imprimir / Salvar PDF</button>
+</aside>
+<main id="paginas"></main>
+<script>
+const DADOS=/^(127\.0\.0\.1|localhost)$/.test(location.hostname)?"../ATLAS_WEB/":"https://lucianogeopro.github.io/atlas-sre-goias/";let MUN=[],MESDIR="",MES="",ED="";
+const BASE=DADOS;
+
+const POR_COL=40, COLS=3, POR_PAG=POR_COL*COLS;
+const sel=new Set();
+const $=s=>document.querySelector(s);
+let lotes=[];
+function preencheLotes(){$('#lote').innerHTML=lotes.map(l=>`<option value="${l}">Lote ${String(l).padStart(2,'0')}</option>`).join('')}
+const modo=()=>document.querySelector('[name=modo]:checked').value;
+const ordem=()=>document.querySelector('[name=ordem]:checked').value;
+const nomeLote=l=>l?'Lote '+String(l).padStart(2,'0'):'Sem lote (sem SRE)';
+function ordenar(a){return a.slice().sort((x,y)=>ordem()==='lote'?((x.lote||99)-(y.lote||99))||(x.ordem-y.ordem):x.ordem-y.ordem)}
+function escolhidos(){return ordenar(MUN.filter(m=>sel.has(m.cod)))}
+function desenhaLista(){
+  const q=$('#busca').value.trim().toLowerCase();
+  let h='',g=null;
+  for(const m of ordenar(MUN)){
+    if(q&&!m.nome.toLowerCase().includes(q))continue;
+    if(ordem()==='lote'&&m.lote!==g){g=m.lote;h+=`<div class="gr">${nomeLote(g)}</div>`}
+    h+=`<label><input type="checkbox" data-c="${m.cod}" ${sel.has(m.cod)?'checked':''}> ${m.nome}</label>`;
+  }
+  $('#lista').innerHTML=h;
+}
+function aplicaModo(){
+  sel.clear();
+  if(modo()==='todos')MUN.forEach(m=>sel.add(m.cod));
+  if(modo()==='lote')MUN.filter(m=>m.lote==$('#lote').value).forEach(m=>sel.add(m.cod));
+  desenhaLista();monta();
+}
+function textoSel(lst){
+  if(lst.length===MUN.length)return 'Todos os 246 municípios de Goiás';
+  const ls=[...new Set(lst.map(m=>m.lote))];
+  const lote=ls.length===1&&MUN.filter(m=>m.lote===ls[0]).length===lst.length;
+  if(lote)return `${nomeLote(ls[0])} – ${lst.length} municípios`;
+  return lst.length===1?'1 município: '+lst[0].nome:`${lst.length} municípios selecionados`;
+}
+function monta(){
+  const lst=escolhidos();
+  // linhas do índice (com títulos de lote quando agrupado)
+  const linhas=[];let g=null;
+  for(const m of lst){ if(ordem()==='lote'&&m.lote!==g){g=m.lote;linhas.push({gr:nomeLote(g)})} linhas.push({m}) }
+  const pagIndice=Math.max(1,Math.ceil(linhas.length/POR_PAG));
+  const primeira=2+pagIndice+1; // capa(1) + rosto(2) + índice
+  lst.forEach((m,i)=>m.pag=primeira+i);
+  const faixa=t=>`<div class="faixa"><span>${t}</span><img src="${BASE}img/logo.svg" onerror="this.remove()"></div>`;
+  let h=`<div class="pg capa"><img src="${BASE}img/capa.jpg"></div>`;
+  h+=`<div class="pg">${faixa('SISTEMA RODOVIÁRIO ESTADUAL – SRE · '+MES.toUpperCase())}
+    <div class="rosto">
+      <div class="org">Governo do Estado de Goiás<br>Secretaria de Estado da Infraestrutura – SEINFRA<br>Agência Goiana de Infraestrutura e Transportes – GOINFRA<br>Diretoria de Planejamento – DPL<br>Gerência da Rede Física – GEREF</div>
+      <div class="tit">CADERNO DE PROJETOS E OBRAS – RECORTE MUNICIPAL</div>
+      <div class="sub">Sistema Rodoviário Estadual – SRE de ${MES}</div>
+      <div class="sel">${textoSel(lst)}</div>
+      <div class="loc">Goiânia<br>${ED.charAt(0).toUpperCase()+ED.slice(1)}</div>
+    </div></div>`;
+  for(let p=0;p<pagIndice;p++){
+    const fatia=linhas.slice(p*POR_PAG,(p+1)*POR_PAG);
+    let cols='';
+    for(let c=0;c<COLS;c++){
+      cols+='<div class="col">'+fatia.slice(c*POR_COL,(c+1)*POR_COL).map(l=>l.gr
+        ?`<div class="lin gr"><span class="n">${l.gr}</span><span class="d"></span><span class="p">0</span></div>`
+        :`<div class="lin"><span class="n">${l.m.nome}</span><span class="d"></span><span class="p">${l.m.pag}</span></div>`).join('')+'</div>';
+    }
+    h+=`<div class="pg">${faixa('SISTEMA RODOVIÁRIO ESTADUAL – SRE · '+MES.toUpperCase())}
+      <div class="indice"><h2>ÍNDICE${pagIndice>1?` (${p+1}/${pagIndice})`:''}</h2><div class="cols">${cols}</div></div>
+      <div class="num2">Página ${3+p}</div></div>`;
+  }
+  for(const m of lst){
+    h+=`<div class="pg"><img class="mapa" loading="lazy" src="${BASE}data/${MESDIR}/caderno/${m.cod}.jpg"><div class="num">Página ${m.pag}</div></div>`;
+  }
+  $('#paginas').innerHTML=h;
+  const total=2+pagIndice+lst.length;
+  $('#resumo').innerHTML=`<b>${lst.length}</b> município(s) · <b>${total}</b> páginas<br>capa + folha de rosto + ${pagIndice} pág. de índice + ${lst.length} mapa(s)`;
+  $('#imprimir').disabled=!lst.length;
+  ajusta();
+}
+function ajusta(){
+  const w=$('#paginas').clientWidth-48, e=Math.min(1,w/1240);
+  document.querySelectorAll('.pg').forEach(p=>{p.style.transform=`scale(${e})`;p.style.marginBottom=(24-876.5*(1-e))+'px';p.style.marginLeft=Math.max(0,(w-1240*e)/2)+'px'});
+}
+document.querySelectorAll('[name=modo]').forEach(r=>r.onchange=aplicaModo);
+$('#lote').onchange=()=>{document.querySelector('[name=modo][value=lote]').checked=true;aplicaModo()};
+document.querySelectorAll('[name=ordem]').forEach(r=>r.onchange=()=>{desenhaLista();monta()});
+$('#busca').oninput=desenhaLista;
+$('#lista').onchange=e=>{const c=e.target.dataset.c;if(!c)return;e.target.checked?sel.add(c):sel.delete(c);document.querySelector('[name=modo][value=manual]').checked=true;monta()};
+$('#marcar').onclick=()=>{MUN.forEach(m=>sel.add(m.cod));document.querySelector('[name=modo][value=manual]').checked=true;desenhaLista();monta()};
+$('#desmarcar').onclick=()=>{sel.clear();document.querySelector('[name=modo][value=manual]').checked=true;desenhaLista();monta()};
+$('#imprimir').onclick=async()=>{
+  const b=$('#imprimir'),imgs=[...document.querySelectorAll('#paginas img')];let n=0;b.disabled=true;
+  imgs.forEach(i=>i.loading='eager');
+  await Promise.all(imgs.map(i=>(i.complete&&i.naturalWidth?Promise.resolve():new Promise(r=>{i.addEventListener('load',r);i.addEventListener('error',r)})).then(()=>{n++;b.textContent=`Carregando páginas… ${n}/${imgs.length}`})));
+  b.textContent='🖨 Imprimir / Salvar PDF';b.disabled=false;window.print();
+};
+window.onafterprint=ajusta;window.onresize=ajusta;
+(async()=>{
+  const meses=await fetch(DADOS+"data/meses.json",{cache:"no-cache"}).then(r=>r.json());
+  MESDIR=meses[meses.length-1].id;
+  const a=await fetch(DADOS+"data/"+MESDIR+"/atlas.json",{cache:"no-cache"}).then(r=>r.json());
+  MES=a.rotulo; ED=a.elaboracao.replace(/^./,c=>c.toLowerCase());
+  MUN=Object.entries(a.municipios).map(([cod,m])=>{let lote=0,mx=-1;for(const[l,s]of Object.entries(m.peso||{})){const t=Object.values(s).reduce((x,y)=>x+y,0);if(t>mx){mx=t;lote=+l}}return{cod,nome:m.nome,ordem:m.ordem,lote}});
+  MUN.forEach(m=>sel.add(m.cod));
+  lotes=[...new Set(MUN.map(m=>m.lote))].sort((a,b)=>(a||99)-(b||99));preencheLotes();
+  desenhaLista();monta();
+})();
+</script></body></html>
