@@ -11,6 +11,7 @@
       "Novo: botão <b>🖨 Gerar caderno</b> na página inicial, para montar e imprimir (ou salvar em PDF) o caderno de mapas em folha A3 deitada.",
       "Escolha o que entra no caderno: todos os municípios, os municípios de um lote ou só os que você marcar na lista; a ordem pode ser alfabética ou agrupada por lote.",
       "O caderno sai com capa, folha de rosto e índice. A numeração das páginas e o índice se ajustam sozinhos aos municípios escolhidos.",
+      "Projetos atualizados com o cadastro de 26/11/2026: saíram quatro projetos de pavimentação na GO-116 e na GO-236, em São João d'Aliança, Flores de Goiás e Formosa.",
     ] },
     { data: "25/11/2026", itens: [
       "Obras e projetos atualizados com os cadastros de 25/11/2026.",
