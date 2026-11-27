@@ -1,65 +1,22 @@
-/* Aviso de novidades — ATUALIZAR A CADA PUBLICAÇÃO: pôr os itens do dia no topo de HIST (data dd/mm/aaaa).
-   20/11/2026: o aviso automático mostra só a atualização mais recente (HIST[0]); o botão #novid-btn (🔔) abre o
-   histórico inteiro, por data. "Entendi"/✕ vale para o CONTEÚDO de HIST[0] (data + assinatura dos itens): o aviso abre
-   sozinho UMA vez a cada publicação que mude o bloco do topo — também no mesmo dia (23/11/2026: a 2ª publicação do dia
-   não apareceu para quem já tinha fechado a 1ª) — e não reabre ao recarregar. Guardado em localStorage e num cookie.
-   Fica por cima da capa. Some no modo apresentação e na impressão. */
+/* Aviso de novidades (19/11/2026) — ATUALIZAR A CADA PUBLICAÇÃO (id novo = o aviso aparece de novo para todos).
+   Mesmo arquivo no atlas (index.html) e no painel (index.html e mapa.html). Fica por cima da capa, fecha no ✕/Entendi,
+   é lembrado no navegador; o botão #novid-btn (se a página tiver) reabre. Some no modo apresentação e na impressão. */
 (() => {
   "use strict";
-  const HIST = [
-    { data: "26/11/2026", itens: [
-      "<b>Projetos atualizados</b> com o cadastro de 26/11/2026: o site passa a mostrar 151 projetos (antes eram 155).",
-      "Saíram do cadastro quatro projetos de pavimentação, todos na etapa Projeto: <b>GO-236 / GO-114</b>, do entroncamento da GO-116 ao perímetro urbano de Flores de Goiás (Flores de Goiás / São João d'Aliança); <b>GO-116</b>, do Km 22 ao entroncamento da GO-236 (Formosa / São João d'Aliança); <b>GO-236</b>, do entroncamento da GO-116 ao da GO-118 (São João d'Aliança); e <b>GO-116</b>, entre os dois entroncamentos com a GO-236 (São João d'Aliança).",
-      "Nenhum projeto novo e nenhuma mudança nos demais projetos. As obras continuam iguais.",
-      "Novo: botão <b>🖨 Gerar caderno</b> na página inicial, para montar e imprimir (ou salvar em PDF) o caderno de mapas em folha A3 deitada.",
-      "Escolha o que entra no caderno: todos os municípios, os municípios de um lote ou só os que você marcar na lista; a ordem pode ser alfabética ou agrupada por lote.",
-      "O caderno sai com capa, folha de rosto e índice. A numeração das páginas e o índice se ajustam sozinhos aos municípios escolhidos.",    ] },
-    { data: "25/11/2026", itens: [
-      "Obras e projetos atualizados com os cadastros de 25/11/2026.",
-      "Novos projetos: pavimentação em Aloândia, Hidrolândia, Bom Jesus de Goiás / Goiatuba e Trindade / Goiânia; ponte sobre o Rio dos Bois (Diorama) e duas interseções em desnível na GO-222 (Nova Veneza).",
-      "Nova obra: pavimentação de estrada vicinal em Itaberaí.",
-      "Situação das obras atualizada conforme o cadastro (contratadas, em andamento, suspensas).",
-      "Saíram do cadastro: o projeto de duplicação da GO-174 / GO-422 (Cachoeira Alta / Rio Verde) e o projeto da ponte sobre o Rio das Almas na GO-241 (Cavalcante).",
-      "Modo apresentação: a página de um município agora é interativa, como a dos municípios combinados. Clique no mapa, nas obras e projetos ou nos gráficos para ver as informações.",
-      "Modo apresentação: clique numa obra ou num projeto no mapa para selecioná-lo, com o mesmo destaque e a mesma caixa de resumo do painel (no município ou inteiro). Para desfazer, clique fora do item ou no <b>✕</b>.",
-      "Modo apresentação: os botões do mapa, a seta norte, a escala numérica e a barra de escala têm o mesmo visual do mapa do painel.",
-    ] },
-    { data: "23/11/2026", itens: [
-      "Quadros de trechos do SRE e de obras e projetos: ao clicar numa linha, o item fica em destaque no mapa com a simbologia original, uma sombra por baixo e o restante do mapa escurecido; início e fim aparecem marcados (com o Km no SRE) e uma caixa mostra o resumo. Na caixa, escolha ver só a parte <b>no município</b> (ou no lote), com a extensão dentro dele, ou o item <b>inteiro</b>, com a extensão total declarada na obra ou no projeto, os municípios por onde passa e as divisas marcadas. O mesmo destaque aparece ao clicar direto numa obra ou num projeto no mapa, na linha ou na placa das obras e projetos pontuais; se ela estiver em outro município, a página passa para esse município. A caixa pode ser arrastada. Para desfazer a seleção, basta clicar fora do item no mapa (ou no <b>✕</b>, ou a tecla Esc); clicar em outra obra ou projeto já seleciona o novo.",
-      "Mapa: o fundo clareado fora do município selecionado agora fica só dentro de Goiás; os outros estados e o Distrito Federal aparecem com o mapa de fundo normal. As divisas estaduais ficam em destaque e o nome dos estados vizinhos aparece no mapa.",
-      "Abas verdes com setas <b>❮ ❯</b> ao lado do mapa, agora maiores e mais visíveis: recolhem ou abrem os painéis da esquerda e da direita para o mapa ganhar espaço.",
-      "Novo: botão de <b>camadas</b> no mapa, ao lado de <b>Coordenadas</b>, para trocar o fundo: Satélite (padrão), Satélite + nomes, OpenStreetMap, Ruas (claro) ou Topográfico.",
-      "Mapa com visual novo: os botões de visualização (aproximar/afastar, <b>Município</b>, <b>Expandir mapa</b> e <b>Coordenadas</b>) agora ficam numa barra no alto do mapa, e a escala numérica fica embaixo, junto da barra de escala.",
-      "Barra de escala do mapa mais fácil de ler: números centralizados em cada divisão, com tracinhos, e caixa ajustada ao tamanho da barra.",
-    ] },
-    { data: "20/11/2026", itens: [
-      "O botão <b>🔔 Novidades</b> agora fica na barra verde do topo, entre o tema e o <b>Sobre os dados</b>; ele mostra o histórico de atualizações.",
-      "Comparativo da composição da malha: clique no mapa dos lotes (ou no botão <b>⤢</b> ao lado dos nomes, embaixo dele) para vê-lo em tamanho maior; passe o mouse sobre um município para ver o nome; com poucas linhas, as barras ficam maiores e mais fáceis de ler.",
-      "<b>Lotes de manutenção:</b> ao abrir um lote pela página inicial, o comparativo da composição da malha mostra o lote escolhido em primeiro e em destaque, só com a malha dentro dele, seguido dos lotes vizinhos e de Goiás. Saiu a linha “Seleção”, que somava os municípios inteiros e passava do total do lote.",
-      "O <b>Copiar link</b> de um lote abre o mesmo lote para quem receber.",
-    ] },
-    { data: "19/11/2026", itens: [
-      "Quadros de obras e projetos e de trechos do SRE: clique numa linha e o mapa dá zoom nela, dentro do município.",
-      "Mapa: ao afastar o zoom ou arrastar, aparecem todos os municípios de Goiás, com as rodovias, obras e projetos.",
-      "Perímetro urbano no mapa agora em branco transparente (antes amarelo), para destacar as rodovias.",
-      "Comparativo da composição da malha: escolha ver os valores em <b>Km</b>, em <b>%</b> ou nos dois (<b>Km e %</b>), no canto do quadro.",
-      "Legendas e símbolos de obras e projetos no padrão oficial: cor pelo tipo de intervenção e traço pela etapa (Estudo Técnico Preliminar, Licitação, Projeto, Obra), com as placas de OAE e OAC.",
-      "Novo botão <b>🖨 Imprimir</b> no modo apresentação: imprime ou salva em PDF a folha do município, ou dos municípios combinados, em A3 deitada.",
-      "Zoom (<b>−</b> / <b>Ajustar</b> / <b>+</b>) também na página de um município no modo apresentação; com zoom, arraste para mover.",
-      "No modo apresentação, os botões ficam escondidos e aparecem ao mexer o mouse.",
-      "Impressora A4: na janela de impressão, escolha “Ajustar à página”.",
-    ] },
-  ];
+  const NOVIDADES = { id: "2026-11-27", data: "27/11/2026", itens: [
+    "<b>Obras atualizadas</b> com o cadastro de 27/11/2026: o site passa a mostrar 87 obras (antes eram 71), em 96 municípios (antes eram 83).",
+    "Entraram 16 obras, todas concluídas ou inauguradas: pavimentação da <b>GO-050</b>, <b>GO-154</b>, <b>GO-219</b>, <b>GO-230</b>, <b>GO-306</b>, <b>GO-309</b> e <b>GO-460</b>; duplicação da <b>GO-139</b> e da <b>GO-174</b>; restauração da <b>GO-040</b>, <b>GO-050</b>, <b>GO-080</b>, <b>GO-184</b> e <b>GO-174</b> (dois trechos); e uma obra de arte especial (OAE) na <b>GO-174</b>, em Rio Verde.",
+    "A obra de pavimentação da <b>GO-219</b> (OB26-01474) passou de Contratado para Concluído.",
+    "<b>Projetos:</b> 15 projetos ligados a obras passam a aparecer na etapa <b>Obra integrada</b> (14 estavam como Estudo Técnico Preliminar e 1, na GO-040, como Obra).",
+  ] };
+  /* 26/11/2026 (b): Projetos atualizados com o cadastro de 26/11/2026: 151 projetos (antes 155); saíram quatro projetos de
+     pavimentação na etapa Projeto (GO-236 / GO-114, GO-116, GO-236 e GO-116, em Flores de Goiás, Formosa e São João d'Aliança). */
+  /* 25/11/2026: Obras e projetos atualizados com os cadastros de 25/11/2026. | Novos projetos: pavimentação em Aloândia, Hidrolândia,
+     Bom Jesus de Goiás / Goiatuba e Trindade / Goiânia; ponte sobre o Rio dos Bois (Diorama) e duas interseções em desnível na GO-222
+     (Nova Veneza). | Nova obra: pavimentação de estrada vicinal em Itaberaí. | Situação das obras atualizada conforme o cadastro
+     (contratadas, em andamento, suspensas). | Saíram do cadastro: o projeto de duplicação da GO-174 / GO-422 (Cachoeira Alta / Rio Verde)
+     e o projeto da ponte sobre o Rio das Almas na GO-241 (Cavalcante). */
   const CHAVE = "novid:" + (location.pathname.split("/")[1] || "local");     // atlas e painel guardam separado
-  const CK = CHAVE.replace(/[^\w-]/g, "_");
-  // assinatura do bloco do topo: muda quando entra/sai/altera item; valor antigo (só a data) também conta como "não visto"
-  const ASS = HIST[0].data + "#" + HIST[0].itens.join("|").split("").reduce((h, ch) => (h * 33 + ch.charCodeAt(0)) >>> 0, 5381).toString(36);
-  function visto() {                     // data da última atualização já fechada neste navegador
-    const dt = v => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v); return m ? `${m[3]}/${m[2]}/${m[1]}` : v; };  // id antigo "2026-11-20b"
-    try { const v = localStorage.getItem(CHAVE); if (v) return dt(v); } catch (e) {}
-    try { const m = document.cookie.match(new RegExp("(?:^|; )" + CK + "=([^;]*)")); if (m) return decodeURIComponent(m[1]); } catch (e) {}
-    return null;
-  }
   const css = `
 .novid { position: fixed; right: 18px; bottom: 18px; z-index: 5050; width: min(380px, calc(100vw - 32px)); box-sizing: border-box;
   background: #fff; color: #2b2b2b; border: 1px solid #d5dbd7; border-left: 5px solid #00923f; border-radius: 6px;
@@ -70,12 +27,9 @@
 .novid-lista { margin: 0 0 10px; padding-left: 18px; }
 .novid-lista li + li { margin-top: 5px; }
 .novid-x { position: absolute; top: 8px; right: 8px; border: 0; background: none; color: #52514e; font-size: 16px; cursor: pointer; padding: 2px 6px; }
-.novid-sec { font-weight: bold; font-size: 13px; color: #1f5b46; margin: 10px 0 4px; }
-.novid-sec:first-child { margin-top: 0; }
-.novid-hist .novid-corpo { max-height: min(60vh, 480px); overflow: auto; padding-right: 6px; }
 .novid-ok { font: bold 13px Arial, sans-serif; color: #fff; background: #00923f; border: 0; border-radius: 4px; padding: 6px 14px; cursor: pointer; }
 [data-tema=escuro] .novid { background: #24282a; color: #e4e4df; border-color: #363a3d; border-left-color: #6cc59a; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
-[data-tema=escuro] .novid-tit, [data-tema=escuro] .novid-sec { color: #6cc59a; }
+[data-tema=escuro] .novid-tit { color: #6cc59a; }
 [data-tema=escuro] .novid-x { color: #b7b6b0; }
 html.apres .novid, html.apres-img .novid { display: none !important; }
 @media print { .novid { display: none !important; } }
@@ -83,39 +37,22 @@ html.apres .novid, html.apres-img .novid { display: none !important; }
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
   const c = document.createElement("aside");
   c.id = "novid"; c.className = "novid"; c.hidden = true; c.setAttribute("role", "dialog"); c.setAttribute("aria-labelledby", "novid-tit");
-  const lista = it => `<ul class="novid-lista">${it.map(t => `<li>${t}</li>`).join("")}</ul>`;
   c.innerHTML = `<button class="novid-x" type="button" aria-label="Fechar">✕</button>
-    <div class="novid-tit" id="novid-tit"></div><div class="novid-corpo"></div>
+    <div class="novid-tit" id="novid-tit">🔔 Novidades do site <span class="novid-data">· ${NOVIDADES.data}</span></div>
+    <ul class="novid-lista">${NOVIDADES.itens.map(t => `<li>${t}</li>`).join("")}</ul>
     <button class="novid-ok" type="button">Entendi</button>`;
   document.body.appendChild(c);
-  const tit = c.querySelector(".novid-tit"), corpo = c.querySelector(".novid-corpo");
-  // hist = false: só a atualização mais recente; true: todas, da mais nova para a mais antiga, cada uma com a data
-  function monta(hist) {
-    c.classList.toggle("novid-hist", hist);
-    if (hist) {
-      tit.innerHTML = "🔔 Histórico de atualizações";
-      corpo.innerHTML = HIST.map(h => `<div class="novid-sec">${h.data}</div>${lista(h.itens)}`).join("");
-    } else {
-      tit.innerHTML = `🔔 Novidades do site <span class="novid-data">· ${HIST[0].data}</span>`;
-      corpo.innerHTML = lista(HIST[0].itens);
-    }
-    corpo.scrollTop = 0;
-  }
-  const apres = () => /apres/.test(document.documentElement.className);
+  const apres = () => /\bapres/.test(document.documentElement.className);
   function mostra(forcar) {
     if (apres()) return;
-    if (!forcar && visto() === ASS) return;
-    monta(!!forcar); c.hidden = false;
+    if (!forcar) { try { if (localStorage.getItem(CHAVE) === NOVIDADES.id) return; } catch (e) {} }
+    c.hidden = false;
   }
-  function fecha() {
-    c.hidden = true; const v = ASS;
-    try { localStorage.setItem(CHAVE, v); } catch (e) {}
-    try { document.cookie = CK + "=" + encodeURIComponent(v) + "; max-age=31536000; path=/; SameSite=Lax"; } catch (e) {}
-  }
+  function fecha() { c.hidden = true; try { localStorage.setItem(CHAVE, NOVIDADES.id); } catch (e) {} }
   c.querySelector(".novid-x").onclick = fecha;
   c.querySelector(".novid-ok").onclick = fecha;
   const b = document.getElementById("novid-btn");
-  if (b) b.onclick = () => (c.hidden || !c.classList.contains("novid-hist")) ? mostra(true) : fecha();
+  if (b) b.onclick = () => c.hidden ? mostra(true) : fecha();
   window.mostraNovidades = mostra;
   setTimeout(() => mostra(false), 800);
 })();
