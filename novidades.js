@@ -3,10 +3,9 @@
    é lembrado no navegador; o botão #novid-btn (se a página tiver) reabre. Some no modo apresentação e na impressão. */
 (() => {
   "use strict";
-  const NOVIDADES = { id: "2026-11-27g", data: "27/11/2026", itens: [
+  const NOVIDADES = { id: "2026-11-27h", data: "27/11/2026", itens: [
     "<b>27/11/2026</b> – Nova coluna <b>Diretoria</b> na tabela de obras e projetos, com a sigla da diretoria responsável (DOR para as obras e DPJ para os projetos).",
-    "<b>27/11/2026</b> – <b>Obras</b> atualizadas com o cadastro do dia: o site passa a mostrar 87 obras (antes eram 71), em 96 municípios (antes eram 83).",
-    "Entraram 16 obras, todas concluídas ou inauguradas: pavimentação da <b>GO-050</b>, <b>GO-154</b>, <b>GO-219</b>, <b>GO-230</b>, <b>GO-306</b>, <b>GO-309</b> e <b>GO-460</b>; duplicação da <b>GO-139</b> e da <b>GO-174</b>; restauração da <b>GO-040</b>, <b>GO-050</b>, <b>GO-080</b>, <b>GO-184</b> e <b>GO-174</b> (dois trechos); e uma obra de arte especial (OAE) na <b>GO-174</b>, em Rio Verde. A obra de pavimentação da <b>GO-219</b> (OB26-01474) passou de Contratado para Concluído.",
+    "<b>27/11/2026</b> – <b>Obras</b> atualizadas com o cadastro do dia: o site mostra 70 obras, em 81 municípios. A pavimentação da <b>GO-219</b> (OB26-01474) foi concluída e deixa de aparecer no site.",
     "<b>27/11/2026</b> – <b>Projetos</b> atualizados com o cadastro do dia: o site passa a mostrar 162 projetos (antes eram 151). Entraram 12 projetos: duplicação da <b>GO-164</b> (quatro trechos) e da <b>GO-174</b>, em Montividiu; pavimentação da <b>GO-188</b> (dois trechos), <b>GO-194</b>, <b>GO-239</b> e de um trecho em Niquelândia; terceira faixa da <b>GO-174</b>; e uma obra de arte especial (OAE) na <b>GO-050</b>, em Montividiu.",
     "Saiu do cadastro o projeto de restauração da <b>GO-309</b>. Dois projetos de duplicação da <b>GO-164</b> passaram para a situação Publicado, e três projetos da GO-164 e da GO-188 tiveram o trecho reduzido.",
     "15 projetos ligados a obras passam a aparecer na etapa <b>Obra integrada</b> (14 estavam como Estudo Técnico Preliminar e 1, na GO-040, como Obra).",
