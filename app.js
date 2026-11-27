@@ -1965,13 +1965,13 @@ function corTarja(l) {
   return [INT_COR[l.intervencao] || "#666666", "#fff"];
 }
 function tabelaObras(m, multi = false) {
-  const ls = (m.obras || []).map(l => ({ ...l, _cor: corTarja(l) }));
+  const ls = (m.obras || []).map(l => ({ ...l, _cor: corTarja(l), _dir: l.natureza === "Obra" ? "DOR" : "DPJ" }));
   tabela($("#t-obras"), [
     ...(multi ? [{ k: "_mun", t: "Município" }] : []),
     { k: "mapa", t: "Mapa", f: (v, l) => `<span class="tarja" style="background:${l._cor[0]};color:${l._cor[1]}">${esc(v)}</span>` },
     { k: "codigo", t: "Código" }, { k: "rodovia", t: "Rodovia" }, { k: "intervencao", t: "Intervenção" },
     { k: "tipo", t: "Tipo" }, { k: "km_mun", t: "Km mun.", f: v => num(v, 2) }, { k: "km_contrato", t: "Km contr.", f: v => num(v, 2) },
-    { k: "etapa", t: "Etapa" }, { k: "situacao", t: "Situação" }, { k: "natureza", t: "Natureza" }], ls, "Sem obras e projetos para o município",
+    { k: "etapa", t: "Etapa" }, { k: "situacao", t: "Situação" }, { k: "natureza", t: "Natureza" }, { k: "_dir", t: "Diretoria" }], ls, "Sem obras e projetos para o município",
     l => destacaObra(l));
 }
 let tSRE = null;
